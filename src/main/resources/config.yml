@@ -1,0 +1,37 @@
+# Storage backend: sqlite or json
+storage:
+  type: sqlite
+  sqlite:
+    file: polls.db
+  json:
+    file: polls.json
+
+# Book customization using MiniMessage formatting
+books:
+  creation:
+    title: "<gradient:#FFB833:#FF5733>Poll Creator</gradient>"
+    author: "Polls"
+    header: "<gold>Create a new poll</gold>\n"
+    editQuestionButton: "<aqua>[Edit Question]</aqua>"
+    editDurationButton: "<aqua>[Edit Duration]</aqua>"
+    publishButton: "<green>[Publish Poll]</green>"
+    cancelButton: "<red>[Cancel]</red>"
+    optionButtonFormat: "<yellow>[Set Option {index}]</yellow>"
+    optionUnset: "<gray>[not set]</gray>"
+    pageNote: "<gray>Set up to 6 options. Use buttons to edit.</gray>"
+  voting:
+    title: "<gradient:#FFB833:#FF5733>Community Poll</gradient>"
+    author: "Polls"
+    headerFormat: "<gold>Q:</gold> <white>{question}</white>\n<gray>Closes:</gray> <white>{closes_at}</white>\n"
+    optionLineFormat: "{icon} <white>{option}</white> <gray>(click to vote)</gray>"
+    alreadyVotedLineFormat: "{icon} <white>{option}</white> <gray>(you voted)</gray>"
+
+# Customizable icons used before option text
+icons:
+  default:
+    - "<yellow>1.</yellow>"
+    - "<yellow>2.</yellow>"
+    - "<yellow>3.</yellow>"
+    - "<yellow>4.</yellow>"
+    - "<yellow>5.</yellow>"
+    - "<yellow>6.</yellow>"

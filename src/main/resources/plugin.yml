@@ -1,0 +1,26 @@
+name: Polls
+main: com.ssquadteam.polls.PollsPlugin
+version: ${version}
+author: SSquadTeam
+api-version: '1.21'
+
+commands:
+  poll:
+    description: Manage and participate in polls
+    usage: /poll <create|close|remove|list|view|vote>
+    aliases: [polls]
+    permission: polls.use
+
+permissions:
+  polls.use:
+    default: true
+  polls.create:
+    default: op
+  polls.close:
+    default: op
+  polls.remove:
+    default: op
+  polls.list:
+    default: op
+  polls.vote:
+    default: true

@@ -1,0 +1,38 @@
+prefix: "<gray>[</gray><gradient:#FFB833:#FF5733>Polls</gradient><gray>]</gray> "
+errors:
+  no_permission: "<red>You don't have permission.</red>"
+  only_players: "<red>Only players can use this.</red>"
+  invalid_args: "<red>Invalid arguments.</red>"
+  invalid_poll: "<red>Unknown poll ID.</red>"
+  invalid_option: "<red>Invalid option index.</red>"
+  already_voted: "<yellow>You already voted in this poll.</yellow>"
+  poll_closed: "<red>This poll is closed.</red>"
+  creation_in_progress: "<yellow>You already have an active poll creation.</yellow>"
+  nothing_to_publish: "<yellow>Set at least two options before publishing.</yellow>"
+  invalid_duration: "<red>Invalid duration. Example: 1d2h30m</red>"
+creation:
+  started: "<green>Poll creation started. A book opened with controls.</green>"
+  prompt_question: "<white>What's the question?</white> <gray>(MiniMessage supported)</gray>\n<gray>Input in chat-</gray>"
+  prompt_duration: "<white>What's the duration?</white> <gray>e.g. 1d2h</gray>\n<gray>Input in chat-</gray>"
+  prompt_option_ordinal: "<white>What's the {ordinal} Option?</white> <gray>(MiniMessage supported)</gray>\n<gray>Input in chat-</gray>"
+  set_question: "<green>Question updated.</green>"
+  set_duration: "<green>Duration updated to <white>{pretty}</white>.</green>"
+  set_option: "<green>Option {index} set.</green>"
+  cancelled: "<red>Poll creation cancelled.</red>"
+  published: "<green>Poll published with ID <white>{id}</white>.</green>"
+  book_hint: "<gray>Use the book buttons to continue.</gray>"
+announce:
+  new_poll: "<gold>New poll:</gold> <white>{question}</white> <gray>(closes {pretty})</gray> <aqua><click:run_command:'/poll view {id}'>[Open Poll]</click></aqua>"
+list:
+  header: "<gold>Polls:</gold>"
+  entry_open: "<green>OPEN</green> <white>{id}</white> - {question} <gray>(closes {pretty})</gray>"
+  entry_closed: "<red>CLOSED</red> <white>{id}</white> - {question}"
+vote:
+  success: "<green>Vote recorded for option {index}.</green>"
+  closed: "<red>Poll is closed.</red>"
+close:
+  success: "<yellow>Poll {id} closed.</yellow>"
+remove:
+  success: "<red>Poll {id} removed.</red>"
+view:
+  opened: "<gray>Opening poll book...</gray>"

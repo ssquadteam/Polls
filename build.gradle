@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '9.0.0'
+}
+
+group = 'com.ssquadteam.polls.polls'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT'
+
+    implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
+    implementation 'com.google.code.gson:gson:2.11.0'
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    relocate 'org.sqlite', 'com.ssquadteam.polls.libs.org.sqlite'
+    relocate 'com.google.gson', 'com.ssquadteam.polls.libs.com.google.gson'
+}
+
+tasks.build.dependsOn tasks.shadowJar
+
+processResources {
+    filteringCharset = 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand(
+            'version': project.version
+        )
+    }
+}
