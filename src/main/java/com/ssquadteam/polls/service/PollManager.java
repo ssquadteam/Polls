@@ -100,13 +100,13 @@ public class PollManager {
 
     public void vote(Player player, UUID pollId, int optionIndex) {
         Poll poll = storage.getPoll(pollId);
-        if (poll == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
-        if (!poll.isOpen()) { messages.send(player, "errors.poll_closed", Map.of()); return; }
-        if (storage.hasVoted(pollId, player.getUniqueId())) { messages.send(player, "errors.already_voted", Map.of()); return; }
-        if (optionIndex < 0 || optionIndex >= poll.getOptions().size()) { messages.send(player, "errors.invalid_option", Map.of()); return; }
+        if (poll == null) { messages.sendWithSound(player, "errors.invalid_poll", Map.of(), "ui.error"); return; }
+        if (!poll.isOpen()) { messages.sendWithSound(player, "errors.poll_closed", Map.of(), "ui.error"); return; }
+        if (storage.hasVoted(pollId, player.getUniqueId())) { messages.sendWithSound(player, "errors.already_voted", Map.of(), "ui.error"); return; }
+        if (optionIndex < 0 || optionIndex >= poll.getOptions().size()) { messages.sendWithSound(player, "errors.invalid_option", Map.of(), "ui.error"); return; }
 
         storage.saveVote(pollId, player.getUniqueId(), optionIndex);
-        messages.send(player, "vote.success", Map.of("index", String.valueOf(optionIndex + 1)));
+        messages.sendWithSound(player, "vote.success", Map.of("index", String.valueOf(optionIndex + 1)), "ui.set_value");
     }
 
     public void shutdown() {

@@ -109,16 +109,15 @@ public class PollCommand implements CommandExecutor, TabCompleter {
             messages.send(sender, "errors.invalid_args", Map.of());
             return;
         }
-        UUID id = parseUUID(args[0]);
-        if (id == null) { messages.send(sender, "errors.invalid_poll", Map.of()); return; }
-        Poll poll = storage.getPoll(id);
+        Poll poll = storage.findByIdOrCode(args[0]);
         if (poll == null) { messages.send(sender, "errors.invalid_poll", Map.of()); return; }
         if (poll.getStatus() == PollStatus.CLOSED) {
-            messages.send(sender, "close.success", Map.of("id", id.toString()));
+            messages.send(sender, "close.success", Map.of("id", poll.getId().toString()));
             return;
         }
         pollManager.closePoll(poll, true);
-        messages.send(sender, "close.success", Map.of("id", id.toString()));
+        messages.send(sender, "close.success", Map.of("id", poll.getId().toString()));
+        if (sender instanceof Player p) plugin.getMessageService().playSound(p, "ui.set_value");
     }
 
     private void handleRemove(CommandSender sender, String[] args) {
@@ -130,10 +129,11 @@ public class PollCommand implements CommandExecutor, TabCompleter {
             messages.send(sender, "errors.invalid_args", Map.of());
             return;
         }
-        UUID id = parseUUID(args[0]);
-        if (id == null) { messages.send(sender, "errors.invalid_poll", Map.of()); return; }
-        pollManager.removePoll(id);
-        messages.send(sender, "remove.success", Map.of("id", id.toString()));
+        Poll poll = storage.findByIdOrCode(args[0]);
+        if (poll == null) { messages.send(sender, "errors.invalid_poll", Map.of()); return; }
+        pollManager.removePoll(poll.getId());
+        messages.send(sender, "remove.success", Map.of("id", poll.getId().toString()));
+        if (sender instanceof Player p) plugin.getMessageService().playSound(p, "ui.cancel");
     }
 
     private void handleList(CommandSender sender) {
@@ -164,12 +164,11 @@ public class PollCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (args.length < 1) { messages.send(player, "errors.invalid_args", Map.of()); return; }
-        UUID id = parseUUID(args[0]);
-        if (id == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
-        Poll poll = storage.getPoll(id);
+        Poll poll = storage.findByIdOrCode(args[0]);
         if (poll == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
         messages.send(player, "view.opened", Map.of());
         plugin.getBookFactory().openVotingBook(player, poll);
+        plugin.getMessageService().playSound(player, "ui.open_voting");
     }
 
     private void handleVote(CommandSender sender, String[] args) {
@@ -179,9 +178,9 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length < 2) { messages.send(player, "errors.invalid_args", Map.of()); return; }
         UUID id = parseUUID(args[0]);
-        if (id == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
+        if (id == null) { messages.send(player, "errors.invalid_poll", Map.of()); plugin.getMessageService().playSound(player, "ui.error"); return; }
         int index;
-        try { index = Integer.parseInt(args[1]); } catch (Exception e) { messages.send(player, "errors.invalid_option", Map.of()); return; }
+        try { index = Integer.parseInt(args[1]); } catch (Exception e) { messages.send(player, "errors.invalid_option", Map.of()); plugin.getMessageService().playSound(player, "ui.error"); return; }
 
         pollManager.vote(player, id, index);
     }
@@ -200,6 +199,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         if (session != null) {
             sessions.endSession(player.getUniqueId());
             messages.send(player, "creation.cancelled", Map.of());
+            plugin.getMessageService().playSound(player, "ui.cancel");
         }
     }
 
@@ -264,10 +264,15 @@ public class PollCommand implements CommandExecutor, TabCompleter {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("create", "list", "view", "vote", "close", "remove");
+            return Arrays.asList("create", "list", "view", "vote", "close", "remove", "edit");
         }
-        if (args.length == 2 && (args[0].equalsIgnoreCase("view") || args[0].equalsIgnoreCase("close") || args[0].equalsIgnoreCase("remove"))) {
-            return storage.getAllPolls().stream().map(p -> p.getId().toString()).collect(Collectors.toList());
+        if (args.length == 2 && (args[0].equalsIgnoreCase("view") || args[0].equalsIgnoreCase("close") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("edit"))) {
+            List<String> items = new ArrayList<>();
+            for (Poll p : storage.getAllPolls()) {
+                items.add(p.getId().toString());
+                if (p.getCode() != null && !p.getCode().isBlank()) items.add(p.getCode());
+            }
+            return items;
         }
         return Collections.emptyList();
     }
