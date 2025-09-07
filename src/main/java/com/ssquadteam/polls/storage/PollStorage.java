@@ -12,6 +12,7 @@ public interface PollStorage {
 
     void savePoll(Poll poll);
     Poll getPoll(UUID id);
+    Poll findByIdOrCode(String idOrCode);
     List<Poll> getAllPolls();
     void removePoll(UUID id);
 

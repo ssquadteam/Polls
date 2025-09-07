@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public class Poll {
     private UUID id;
+    private String code;
     private String question; // MiniMessage
     private List<String> options; // MiniMessage, max 6
     private long createdAtEpochSeconds;
@@ -23,6 +24,8 @@ public class Poll {
     }
 
     public UUID getId() { return id; }
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
     public String getQuestion() { return question; }
     public void setQuestion(String question) { this.question = question; }
     public List<String> getOptions() { return options; }

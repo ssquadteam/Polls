@@ -6,6 +6,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -43,6 +45,11 @@ public class MessageService {
         sender.sendMessage(mm.deserialize(prefix + value));
     }
 
+    public void sendWithSound(CommandSender sender, String path, Map<String, String> placeholders, String soundKey) {
+        send(sender, path, placeholders);
+        if (sender instanceof Player player) playSound(player, soundKey);
+    }
+
     public String apply(Map<String, String> placeholders, String value) {
         if (placeholders == null || placeholders.isEmpty()) return value;
         String result = value;
@@ -56,6 +63,12 @@ public class MessageService {
         String value = messages.getString(path, path);
         String rendered = apply(placeholders, value);
         plugin.getServer().broadcast(mm.deserialize(messages.getString("prefix", "") + rendered));
+        String soundKey = plugin.getConfig().getString("sounds.ui.publish");
+        if (plugin.getConfig().getBoolean("sounds.enabled", true) && soundKey != null) {
+            for (Player p : plugin.getServer().getOnlinePlayers()) {
+                playSound(p, "ui.publish");
+            }
+        }
     }
 
     public String formatRelativeTime(long closesAtEpochSeconds) {
@@ -84,5 +97,18 @@ public class MessageService {
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm z", Locale.ENGLISH);
         fmt.setTimeZone(java.util.TimeZone.getTimeZone(ZoneId.systemDefault()));
         return fmt.format(date);
+    }
+
+    public void playSound(Player player, String keyPath) {
+        if (player == null) return;
+        if (!plugin.getConfig().getBoolean("sounds.enabled", true)) return;
+        String soundKey = plugin.getConfig().getString("sounds." + keyPath);
+        if (soundKey == null || soundKey.isBlank()) return;
+        try {
+            player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(soundKey.toUpperCase(Locale.ROOT)), 1f, 1f);
+        } catch (IllegalArgumentException ex) {
+            // treat as namespaced key string if not a Sound enum
+            player.playSound(player.getLocation(), org.bukkit.NamespacedKey.minecraft(soundKey).toString(), 1f, 1f);
+        }
     }
 }

@@ -21,6 +21,7 @@ public class JsonPollStorage implements PollStorage {
 
     private final Map<UUID, Poll> polls = new HashMap<>();
     private final Map<UUID, Map<UUID, Integer>> votes = new HashMap<>();
+    private final Map<String, UUID> codeIndex = new HashMap<>();
 
     public JsonPollStorage(PollsPlugin plugin) { this.plugin = plugin; }
 
@@ -39,11 +40,15 @@ public class JsonPollStorage implements PollStorage {
                     Type type = new TypeToken<Map<String, JsonPoll>>(){}.getType();
                     Map<String, JsonPoll> map = gson.fromJson(r, type);
                     polls.clear();
+                    codeIndex.clear();
                     if (map != null) {
                         for (Map.Entry<String, JsonPoll> e : map.entrySet()) {
                             UUID id = UUID.fromString(e.getKey());
                             JsonPoll jp = e.getValue();
-                            polls.put(id, new Poll(id, jp.question, jp.options, jp.createdAt, jp.closesAt, PollStatus.valueOf(jp.status)));
+                            Poll p = new Poll(id, jp.question, jp.options, jp.createdAt, jp.closesAt, PollStatus.valueOf(jp.status));
+                            p.setCode(jp.code);
+                            polls.put(id, p);
+                            if (jp.code != null && !jp.code.isBlank()) codeIndex.put(jp.code.toLowerCase(), id);
                         }
                     }
                 }
@@ -75,7 +80,7 @@ public class JsonPollStorage implements PollStorage {
             Map<String, JsonPoll> out = new HashMap<>();
             for (Map.Entry<UUID, Poll> e : polls.entrySet()) {
                 Poll p = e.getValue();
-                out.put(e.getKey().toString(), new JsonPoll(p.getQuestion(), p.getOptions(), p.getCreatedAtEpochSeconds(), p.getClosesAtEpochSeconds(), p.getStatus().name()));
+                out.put(e.getKey().toString(), new JsonPoll(p.getCode(), p.getQuestion(), p.getOptions(), p.getCreatedAtEpochSeconds(), p.getClosesAtEpochSeconds(), p.getStatus().name()));
             }
             try (Writer w = new FileWriter(pollFile)) { gson.toJson(out, w); }
 
@@ -97,6 +102,7 @@ public class JsonPollStorage implements PollStorage {
     @Override
     public void savePoll(Poll poll) {
         polls.put(poll.getId(), poll);
+        if (poll.getCode() != null) codeIndex.put(poll.getCode().toLowerCase(), poll.getId());
         persist();
     }
 
@@ -114,6 +120,7 @@ public class JsonPollStorage implements PollStorage {
     public void removePoll(UUID id) {
         polls.remove(id);
         votes.remove(id);
+        codeIndex.values().removeIf(u -> u.equals(id));
         persist();
     }
 
@@ -139,14 +146,26 @@ public class JsonPollStorage implements PollStorage {
         return tally;
     }
 
+    @Override
+    public Poll findByIdOrCode(String idOrCode) {
+        try {
+            UUID id = UUID.fromString(idOrCode);
+            return getPoll(id);
+        } catch (Exception ignored) {}
+        UUID mapped = codeIndex.get(idOrCode.toLowerCase());
+        if (mapped != null) return getPoll(mapped);
+        return null;
+    }
+
     private static class JsonPoll {
+        String code;
         String question;
         List<String> options;
         long createdAt;
         long closesAt;
         String status;
-        public JsonPoll(String question, List<String> options, long createdAt, long closesAt, String status) {
-            this.question = question; this.options = options; this.createdAt = createdAt; this.closesAt = closesAt; this.status = status;
+        public JsonPoll(String code, String question, List<String> options, long createdAt, long closesAt, String status) {
+            this.code = code; this.question = question; this.options = options; this.createdAt = createdAt; this.closesAt = closesAt; this.status = status;
         }
     }
 }

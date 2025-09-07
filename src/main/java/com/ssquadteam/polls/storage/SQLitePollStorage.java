@@ -30,7 +30,7 @@ public class SQLitePollStorage implements PollStorage {
             String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
             connection = DriverManager.getConnection(url);
             try (Statement st = connection.createStatement()) {
-                st.executeUpdate("CREATE TABLE IF NOT EXISTS polls (id TEXT PRIMARY KEY, question TEXT NOT NULL, options_json TEXT NOT NULL, created_at INTEGER NOT NULL, closes_at INTEGER NOT NULL, status TEXT NOT NULL)");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS polls (id TEXT PRIMARY KEY, code TEXT UNIQUE, question TEXT NOT NULL, options_json TEXT NOT NULL, created_at INTEGER NOT NULL, closes_at INTEGER NOT NULL, status TEXT NOT NULL)");
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS votes (poll_id TEXT NOT NULL, player_uuid TEXT NOT NULL, option_index INTEGER NOT NULL, voted_at INTEGER NOT NULL, PRIMARY KEY (poll_id, player_uuid))");
             }
         } catch (SQLException e) {
@@ -45,15 +45,16 @@ public class SQLitePollStorage implements PollStorage {
 
     @Override
     public void savePoll(Poll poll) {
-        String sql = "INSERT INTO polls (id, question, options_json, created_at, closes_at, status) VALUES (?, ?, ?, ?, ?, ?) " +
-                "ON CONFLICT(id) DO UPDATE SET question=excluded.question, options_json=excluded.options_json, created_at=excluded.created_at, closes_at=excluded.closes_at, status=excluded.status";
+        String sql = "INSERT INTO polls (id, code, question, options_json, created_at, closes_at, status) VALUES (?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT(id) DO UPDATE SET code=excluded.code, question=excluded.question, options_json=excluded.options_json, created_at=excluded.created_at, closes_at=excluded.closes_at, status=excluded.status";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, poll.getId().toString());
-            ps.setString(2, poll.getQuestion());
-            ps.setString(3, gson.toJson(poll.getOptions()));
-            ps.setLong(4, poll.getCreatedAtEpochSeconds());
-            ps.setLong(5, poll.getClosesAtEpochSeconds());
-            ps.setString(6, poll.getStatus().name());
+            ps.setString(2, poll.getCode());
+            ps.setString(3, poll.getQuestion());
+            ps.setString(4, gson.toJson(poll.getOptions()));
+            ps.setLong(5, poll.getCreatedAtEpochSeconds());
+            ps.setLong(6, poll.getClosesAtEpochSeconds());
+            ps.setString(7, poll.getStatus().name());
             ps.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to save poll: " + e.getMessage());
@@ -62,17 +63,20 @@ public class SQLitePollStorage implements PollStorage {
 
     @Override
     public Poll getPoll(UUID id) {
-        String sql = "SELECT question, options_json, created_at, closes_at, status FROM polls WHERE id = ?";
+        String sql = "SELECT code, question, options_json, created_at, closes_at, status FROM polls WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, id.toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    String question = rs.getString(1);
-                    List<String> options = gson.fromJson(rs.getString(2), listStringType());
-                    long created = rs.getLong(3);
-                    long closes = rs.getLong(4);
-                    PollStatus status = PollStatus.valueOf(rs.getString(5));
-                    return new Poll(id, question, options, created, closes, status);
+                    String code = rs.getString(1);
+                    String question = rs.getString(2);
+                    List<String> options = gson.fromJson(rs.getString(3), listStringType());
+                    long created = rs.getLong(4);
+                    long closes = rs.getLong(5);
+                    PollStatus status = PollStatus.valueOf(rs.getString(6));
+                    Poll p = new Poll(id, question, options, created, closes, status);
+                    p.setCode(code);
+                    return p;
                 }
             }
         } catch (SQLException e) {
@@ -82,18 +86,50 @@ public class SQLitePollStorage implements PollStorage {
     }
 
     @Override
+    public Poll findByIdOrCode(String idOrCode) {
+        try {
+            UUID id = UUID.fromString(idOrCode);
+            return getPoll(id);
+        } catch (Exception ignored) {}
+        String sql = "SELECT id, code, question, options_json, created_at, closes_at, status FROM polls WHERE lower(code) = lower(?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, idOrCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    UUID id = UUID.fromString(rs.getString(1));
+                    String code = rs.getString(2);
+                    String question = rs.getString(3);
+                    List<String> options = gson.fromJson(rs.getString(4), listStringType());
+                    long created = rs.getLong(5);
+                    long closes = rs.getLong(6);
+                    PollStatus status = PollStatus.valueOf(rs.getString(7));
+                    Poll p = new Poll(id, question, options, created, closes, status);
+                    p.setCode(code);
+                    return p;
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to find poll: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
     public List<Poll> getAllPolls() {
         List<Poll> list = new ArrayList<>();
-        String sql = "SELECT id, question, options_json, created_at, closes_at, status FROM polls ORDER BY created_at DESC";
+        String sql = "SELECT id, code, question, options_json, created_at, closes_at, status FROM polls ORDER BY created_at DESC";
         try (Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 UUID id = UUID.fromString(rs.getString(1));
-                String question = rs.getString(2);
-                List<String> options = gson.fromJson(rs.getString(3), listStringType());
-                long created = rs.getLong(4);
-                long closes = rs.getLong(5);
-                PollStatus status = PollStatus.valueOf(rs.getString(6));
-                list.add(new Poll(id, question, options, created, closes, status));
+                String code = rs.getString(2);
+                String question = rs.getString(3);
+                List<String> options = gson.fromJson(rs.getString(4), listStringType());
+                long created = rs.getLong(5);
+                long closes = rs.getLong(6);
+                PollStatus status = PollStatus.valueOf(rs.getString(7));
+                Poll p = new Poll(id, question, options, created, closes, status);
+                p.setCode(code);
+                list.add(p);
             }
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to list polls: " + e.getMessage());

@@ -32,10 +32,17 @@ public class ChatListener implements Listener {
         String msg = event.getMessage();
 
         switch (awaiting) {
+            case CODE -> {
+                session.setCode(msg.trim());
+                session.clearAwaiting();
+                plugin.getMessageService().send(event.getPlayer(), "creation.set_code", Map.of("code", session.getCode()));
+                plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");
+            }
             case QUESTION -> {
                 session.setQuestion(msg);
                 session.clearAwaiting();
                 plugin.getMessageService().send(event.getPlayer(), "creation.set_question", Map.of());
+                plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");
             }
             case DURATION -> {
                 Long seconds = DurationUtil.parseDurationSeconds(msg);
@@ -48,12 +55,14 @@ public class ChatListener implements Listener {
                 plugin.getMessageService().send(event.getPlayer(), "creation.set_duration", Map.of(
                         "pretty", plugin.getMessageService().formatRelativeTime(session.previewClosesAt())
                 ));
+                plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");
             }
             case OPTION -> {
                 int idx = session.getAwaitingOptionIndex();
                 session.setOption(idx, msg);
                 session.clearAwaiting();
                 plugin.getMessageService().send(event.getPlayer(), "creation.set_option", Map.of("index", String.valueOf(idx + 1)));
+                plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");
             }
         }
 

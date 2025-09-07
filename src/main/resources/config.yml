@@ -9,29 +9,51 @@ storage:
 # Book customization using MiniMessage formatting
 books:
   creation:
-    title: "<gradient:#FFB833:#FF5733>Poll Creator</gradient>"
+    title: "<gradient:#7BD3EA:#2176FF>Poll Creator</gradient>"
     author: "Polls"
-    header: "<gold>Create a new poll</gold>\n"
-    editQuestionButton: "<aqua>[Edit Question]</aqua>"
-    editDurationButton: "<aqua>[Edit Duration]</aqua>"
+    header: "<gray>Create a new poll</gray>\n"
+    editCodeButton: "<blue>[Edit ID]</blue>"
+    editQuestionButton: "<blue>[Edit Question]</blue>"
+    editDurationButton: "<blue>[Edit Duration]</blue>"
     publishButton: "<green>[Publish Poll]</green>"
     cancelButton: "<red>[Cancel]</red>"
-    optionButtonFormat: "<yellow>[Set Option {index}]</yellow>"
-    optionUnset: "<black>[Not Set]"
-    pageNote: "<black>Set up to 6 options. Use buttons to edit.</black>"
+    optionButtonFormat: "<gray>[Set Option {index}]</gray>"
+    optionUnset: "<dark_gray>[Not Set]"
+    pageNote: "<gray>Set up to 6 options. Use buttons to edit.</gray>"
+    hover:
+      code: "<gray>Click to set ID</gray>"
+      question: "<gray>Click to set question</gray>"
+      duration: "<gray>Click to set duration</gray>"
+      option: "<gray>Click to set option {index}</gray>"
+      publish: "<green>Click to publish</green>"
+      cancel: "<red>Click to cancel</red>"
   voting:
-    title: "<gradient:#FFB833:#FF5733>Community Poll</gradient>"
+    title: "<gradient:#7BD3EA:#2176FF>Community Poll</gradient>"
     author: "Polls"
-    headerFormat: "<gold>Q:</gold> <white>{question}</white>\n<black>Closes:</black> <white>{closes_at}</white>\n"
-    optionLineFormat: "{icon} <white>{option}</white> <black>(click to vote)</black>"
-    alreadyVotedLineFormat: "{icon} <white>{option}</white> <black>(you voted)</black>"
+    headerFormat: "<gray>Q:</gray> <white>{question}</white>\n<gray>Closes:</gray> <white>{closes_at}</white>\n"
+    optionLineFormat: "{icon} <white>{option}</white> <gray>(click to vote)</gray>"
+    alreadyVotedLineFormat: "{icon} <white>{option}</white> <gray>(you voted)</gray>"
+    hover:
+      option: "<gray>Pick this option.</gray>"
+      alreadyVotedOption: "<yellow>You already voted</yellow>"
+      question: "<gray>Poll question</gray>"
 
 # Customizable icons used before option text
 icons:
   default:
-    - "<yellow>1.</yellow>"
-    - "<yellow>2.</yellow>"
-    - "<yellow>3.</yellow>"
-    - "<yellow>4.</yellow>"
-    - "<yellow>5.</yellow>"
-    - "<yellow>6.</yellow>"
+    - "<white>1.</white>"
+    - "<white>2.</white>"
+    - "<white>3.</white>"
+    - "<white>4.</white>"
+    - "<white>5.</white>"
+    - "<white>6.</white>"
+
+# Sound customization for UX feedback
+sounds:
+  enabled: true
+  ui:
+    open_creation: "ui.button.click"
+    set_value: "ui.toast.challenge_complete"
+    error: "entity.villager.no"
+    publish: "entity.player.levelup"
+    cancel: "entity.item.break"

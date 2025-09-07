@@ -34,13 +34,40 @@ public class PollManager {
             messages.send(player, "errors.nothing_to_publish", Map.of());
             return;
         }
+        if (session.getCode() == null || session.getCode().isBlank()) {
+            messages.send(player, "errors.missing_code", Map.of());
+            return;
+        }
+        if (!session.isEditingExisting()) {
+            if (storage.findByIdOrCode(session.getCode()) != null) {
+                messages.send(player, "errors.code_in_use", Map.of());
+                return;
+            }
+        }
         long duration = session.getDurationSeconds() == null ? DurationUtil.DEFAULT_DURATION_SECONDS : session.getDurationSeconds();
         long now = Instant.now().getEpochSecond();
         long closesAt = now + duration;
-        UUID id = UUID.randomUUID();
-        Poll poll = new Poll(id, session.getQuestion() == null ? "Untitled Poll" : session.getQuestion(), options, now, closesAt, PollStatus.OPEN);
-        storage.savePoll(poll);
-        trackOpenPoll(poll);
+        UUID id;
+        Poll poll;
+        if (session.isEditingExisting()) {
+            poll = storage.getPoll(session.getEditingPollId());
+            if (poll == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
+            poll.setQuestion(session.getQuestion() == null ? poll.getQuestion() : session.getQuestion());
+            poll.setOptions(options);
+            poll.setClosesAtEpochSeconds(closesAt);
+            poll.setStatus(PollStatus.OPEN);
+            poll.setCode(session.getCode());
+            id = poll.getId();
+            storage.savePoll(poll);
+            // reschedule
+            trackOpenPoll(poll);
+        } else {
+            id = UUID.randomUUID();
+            poll = new Poll(id, session.getQuestion() == null ? "Untitled Poll" : session.getQuestion(), options, now, closesAt, PollStatus.OPEN);
+            poll.setCode(session.getCode());
+            storage.savePoll(poll);
+            trackOpenPoll(poll);
+        }
         plugin.getSessionManager().endSession(player.getUniqueId());
 
         Map<String, String> ph = Map.of(

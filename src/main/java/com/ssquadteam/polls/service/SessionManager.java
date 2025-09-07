@@ -33,6 +33,11 @@ public class SessionManager {
         if (s != null) s.awaitQuestion();
     }
 
+    public void awaitCode(UUID playerId) {
+        PollCreationSession s = sessions.get(playerId);
+        if (s != null) s.awaitCode();
+    }
+
     public void awaitDuration(UUID playerId) {
         PollCreationSession s = sessions.get(playerId);
         if (s != null) s.awaitDuration();

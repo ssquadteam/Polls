@@ -1,4 +1,4 @@
-prefix: "<gray>[</gray><gradient:#FFB833:#FF5733>Polls</gradient><gray>]</gray> "
+prefix: "<gradient:#7BD3EA:#2176FF>Polls</gradient> <gray>›</gray> "
 errors:
   no_permission: "<red>You don't have permission.</red>"
   only_players: "<red>Only players can use this.</red>"
@@ -10,11 +10,15 @@ errors:
   creation_in_progress: "<yellow>You already have an active poll creation.</yellow>"
   nothing_to_publish: "<yellow>Set at least two options before publishing.</yellow>"
   invalid_duration: "<red>Invalid duration. Example: 1d2h30m</red>"
+  missing_code: "<red>Please set a Poll ID first.</red>"
+  code_in_use: "<red>That Poll ID is already in use.</red>"
 creation:
   started: "<green>Poll creation started. A book opened with controls.</green>"
+  prompt_code: "<white>Set a unique Poll ID</white> <gray>(letters, numbers, dashes)</gray>\n<gray>Input in chat-</gray>"
   prompt_question: "<white>What's the question?</white> <gray>(MiniMessage supported)</gray>\n<gray>Input in chat-</gray>"
   prompt_duration: "<white>What's the duration?</white> <gray>e.g. 1d2h</gray>\n<gray>Input in chat-</gray>"
   prompt_option_ordinal: "<white>What's the {ordinal} Option?</white> <gray>(MiniMessage supported)</gray>\n<gray>Input in chat-</gray>"
+  set_code: "<green>Poll ID set to <white>{code}</white>.</green>"
   set_question: "<green>Question updated.</green>"
   set_duration: "<green>Duration updated to <white>{pretty}</white>.</green>"
   set_option: "<green>Option {index} set.</green>"

@@ -97,6 +97,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         messages.send(player, "creation.started", Map.of());
         messages.send(player, "creation.book_hint", Map.of());
         plugin.getBookFactory().openCreationBook(player, session);
+        plugin.getMessageService().playSound(player, "ui.open_creation");
     }
 
     private void handleClose(CommandSender sender, String[] args) {
@@ -205,18 +206,42 @@ public class PollCommand implements CommandExecutor, TabCompleter {
     private void handleEdit(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) { messages.send(sender, "errors.only_players", Map.of()); return; }
         if (!player.hasPermission("polls.create")) { messages.send(player, "errors.no_permission", Map.of()); return; }
+        if (args.length == 0) { messages.send(player, "errors.invalid_args", Map.of()); return; }
+
+        if (args.length >= 1 && !args[0].equalsIgnoreCase("question") && !args[0].equalsIgnoreCase("duration") && !args[0].equalsIgnoreCase("option") && !args[0].equalsIgnoreCase("code")) {
+            String idOrCode = args[0];
+            Poll target = storage.findByIdOrCode(idOrCode);
+            if (target == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
+            PollCreationSession session = sessions.startSession(player.getUniqueId());
+            session.startEditing(target.getId());
+            session.setCode(target.getCode());
+            session.setQuestion(target.getQuestion());
+            long now = java.time.Instant.now().getEpochSecond();
+            if (target.getStatus() == com.ssquadteam.polls.model.PollStatus.OPEN) {
+                long remaining = Math.max(0, target.getClosesAtEpochSeconds() - now);
+                session.setDurationSeconds(remaining);
+            }
+            java.util.List<String> opts = target.getOptions();
+            for (int i = 0; i < Math.min(6, opts.size()); i++) session.setOption(i, opts.get(i));
+            plugin.getBookFactory().openCreationBook(player, session);
+            return;
+        }
+
         PollCreationSession session = sessions.getSession(player.getUniqueId());
         if (session == null) { messages.send(player, "errors.invalid_args", Map.of()); return; }
-        if (args.length == 0) { messages.send(player, "errors.invalid_args", Map.of()); return; }
         String type = args[0].toLowerCase(Locale.ROOT);
         switch (type) {
+            case "code" -> {
+                sessions.awaitCode(player.getUniqueId());
+                messages.sendWithSound(player, "creation.prompt_code", Map.of(), "ui.set_value");
+            }
             case "question" -> {
                 sessions.awaitQuestion(player.getUniqueId());
-                messages.send(player, "creation.prompt_question", Map.of());
+                messages.sendWithSound(player, "creation.prompt_question", Map.of(), "ui.set_value");
             }
             case "duration" -> {
                 sessions.awaitDuration(player.getUniqueId());
-                messages.send(player, "creation.prompt_duration", Map.of());
+                messages.sendWithSound(player, "creation.prompt_duration", Map.of(), "ui.set_value");
             }
             case "option" -> {
                 if (args.length < 2) { messages.send(player, "errors.invalid_args", Map.of()); return; }
@@ -225,7 +250,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
                 if (idx < 1 || idx > 6) { messages.send(player, "errors.invalid_option", Map.of()); return; }
                 sessions.awaitOption(player.getUniqueId(), idx - 1);
                 String ordinal = com.ssquadteam.polls.util.OrdinalUtil.toOrdinal(idx);
-                messages.send(player, "creation.prompt_option_ordinal", Map.of("ordinal", ordinal));
+                messages.sendWithSound(player, "creation.prompt_option_ordinal", Map.of("ordinal", ordinal), "ui.set_value");
             }
             default -> messages.send(player, "errors.invalid_args", Map.of());
         }
