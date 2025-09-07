@@ -33,7 +33,7 @@ public class ChatListener implements Listener {
 
         switch (awaiting) {
             case CODE -> {
-                session.setCode(msg.trim());
+                session.setCode(plugin.getMessageService().sanitizeForMiniMessage(msg.trim()));
                 session.clearAwaiting();
                 plugin.getMessageService().send(event.getPlayer(), "creation.set_code", Map.of("code", session.getCode()));
                 plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");

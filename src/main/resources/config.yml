@@ -20,6 +20,12 @@ books:
     optionButtonFormat: "<gray>[Set Option {index}]</gray>"
     optionUnset: "<dark_gray>[Not Set]"
     pageNote: "<gray>Set up to 6 options. Use buttons to edit.</gray>"
+    nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
+    indent: "  "
+    labels:
+      id: "<gray>ID:</gray>"
+      question: "<gray>Question:</gray>"
+      duration: "<gray>Duration:</gray>"
     hover:
       code: "<gray>Click to set ID</gray>"
       question: "<gray>Click to set question</gray>"

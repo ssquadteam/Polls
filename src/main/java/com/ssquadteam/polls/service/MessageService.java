@@ -17,12 +17,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class MessageService {
 
     private final Plugin plugin;
     private final MiniMessage mm = MiniMessage.miniMessage();
     private FileConfiguration messages;
+    private static final Pattern LEGACY_COLOR = Pattern.compile("(?i)[§&][0-9A-FK-OR]");
 
     public MessageService(Plugin plugin) {
         this.plugin = plugin;
@@ -54,7 +56,8 @@ public class MessageService {
         if (placeholders == null || placeholders.isEmpty()) return value;
         String result = value;
         for (Map.Entry<String, String> e : placeholders.entrySet()) {
-            result = result.replace("{" + e.getKey() + "}", e.getValue());
+            String safe = sanitizeForMiniMessage(e.getValue());
+            result = result.replace("{" + e.getKey() + "}", safe);
         }
         return result;
     }
@@ -110,5 +113,11 @@ public class MessageService {
             // treat as namespaced key string if not a Sound enum
             player.playSound(player.getLocation(), org.bukkit.NamespacedKey.minecraft(soundKey).toString(), 1f, 1f);
         }
+    }
+
+    public String sanitizeForMiniMessage(String input) {
+        if (input == null) return "";
+        // Strip legacy color codes like §a and &a
+        return LEGACY_COLOR.matcher(input).replaceAll("");
     }
 }

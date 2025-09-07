@@ -55,6 +55,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
             case "vote" -> handleVote(sender, Arrays.copyOfRange(args, 1, args.length));
             case "publish" -> handlePublish(sender);
             case "cancel" -> handleCancel(sender);
+            case "cancelcreation" -> handleCancel(sender);
             case "edit" -> handleEdit(sender, Arrays.copyOfRange(args, 1, args.length));
             default -> messages.send(sender, "errors.invalid_args", Map.of());
         }
@@ -264,7 +265,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("create", "list", "view", "vote", "close", "remove", "edit");
+            return Arrays.asList("create", "list", "view", "vote", "close", "remove", "edit", "cancelcreation");
         }
         if (args.length == 2 && (args[0].equalsIgnoreCase("view") || args[0].equalsIgnoreCase("close") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("edit"))) {
             List<String> items = new ArrayList<>();

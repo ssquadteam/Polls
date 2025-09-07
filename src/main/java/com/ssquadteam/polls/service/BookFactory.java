@@ -44,6 +44,11 @@ public class BookFactory {
         String optionFmt = plugin.getConfig().getString("books.creation.optionButtonFormat", "[Set Option {index}]");
         String optionUnset = plugin.getConfig().getString("books.creation.optionUnset", "[Not Set]");
         String pageNote = plugin.getConfig().getString("books.creation.pageNote", "Set up to 6 options.");
+        String nextPageNote = plugin.getConfig().getString("books.creation.nextPageNote", "Turn to next page to continue →");
+        String indent = plugin.getConfig().getString("books.creation.indent", "  ");
+        String labelId = plugin.getConfig().getString("books.creation.labels.id", "<black>ID:</black>");
+        String labelQ = plugin.getConfig().getString("books.creation.labels.question", "<black>Question:</black>");
+        String labelD = plugin.getConfig().getString("books.creation.labels.duration", "<black>Duration:</black>");
         String hoverCode = plugin.getConfig().getString("books.creation.hover.code", "Click to set ID");
         String hoverQuestion = plugin.getConfig().getString("books.creation.hover.question", "Click to set question");
         String hoverDuration = plugin.getConfig().getString("books.creation.hover.duration", "Click to set duration");
@@ -59,21 +64,14 @@ public class BookFactory {
 
         Component page1 = mm.deserialize(header)
                 .append(newline())
-                .append(mm.deserialize("<black>ID:</black> "))
-                .append(withHover(mm.deserialize(code), hoverCode))
+                .append(mm.deserialize(indent))
+                .append(clickable(label(labelId, code), "/poll edit code", hoverCode))
                 .append(newline())
-                .append(mm.deserialize("<black>Question:</black> "))
-                .append(withHover(mm.deserialize(question), hoverQuestion))
+                .append(mm.deserialize(indent))
+                .append(clickable(label(labelQ, question), "/poll edit question", hoverQuestion))
                 .append(newline())
-                .append(mm.deserialize("<black>Duration:</black> "))
-                .append(withHover(mm.deserialize(duration), hoverDuration))
-                .append(newline())
-                .append(newline())
-                .append(clickable(editCode, "/poll edit code", hoverCode))
-                .append(Component.text(" "))
-                .append(clickable(editQ, "/poll edit question", hoverQuestion))
-                .append(Component.text(" "))
-                .append(clickable(editD, "/poll edit duration", hoverDuration))
+                .append(mm.deserialize(indent))
+                .append(clickable(label(labelD, duration), "/poll edit duration", hoverDuration))
                 .append(newline())
                 .append(newline())
                 .append(mm.deserialize(pageNote))
@@ -84,10 +82,8 @@ public class BookFactory {
             String label = optionFmt.replace("{index}", String.valueOf(i + 1));
             String value = session.getOption(i) == null ? optionUnset : session.getOption(i);
             String hover = hoverOption.replace("{index}", String.valueOf(i + 1));
-            page1 = page1.append(clickable(label, "/poll edit option " + (i + 1), hover))
-                    .append(mm.deserialize(" <black>"))
-                    .append(withHover(mm.deserialize(value), hover))
-                    .append(mm.deserialize("</black>"))
+            page1 = page1.append(mm.deserialize(indent))
+                    .append(clickable(label + " "+ value, "/poll edit option " + (i + 1), hover))
                     .append(newline());
         }
 
@@ -97,16 +93,18 @@ public class BookFactory {
             String label = optionFmt.replace("{index}", String.valueOf(i + 1));
             String value = session.getOption(i) == null ? optionUnset : session.getOption(i);
             String hover = hoverOption.replace("{index}", String.valueOf(i + 1));
-            page2 = page2.append(clickable(label, "/poll edit option " + (i + 1), hover))
-                    .append(mm.deserialize(" <black>"))
-                    .append(withHover(mm.deserialize(value), hover))
-                    .append(mm.deserialize("</black>"))
+            page2 = page2.append(mm.deserialize(indent))
+                    .append(clickable(label + " " + value, "/poll edit option " + (i + 1), hover))
                     .append(newline());
         }
         page2 = page2.append(newline())
+                .append(mm.deserialize(indent))
                 .append(clickable(publish, "/poll publish", hoverPublish))
                 .append(Component.text(" "))
                 .append(clickable(cancel, "/poll cancel", hoverCancel));
+
+        // Next page info at end of page 1
+        page1 = page1.append(newline()).append(mm.deserialize(indent + nextPageNote));
 
         meta.title(Component.text(mm.stripTags(title)));
         meta.author(Component.text(mm.stripTags(author)));
@@ -201,5 +199,9 @@ public class BookFactory {
     private Component withHover(Component component, String hover) {
         if (hover == null || hover.isBlank()) return component;
         return component.hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(mm.deserialize(hover)));
+    }
+
+    private String label(String labelMm, String valueMm) {
+        return labelMm + " " + valueMm;
     }
 }
