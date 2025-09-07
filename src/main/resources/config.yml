@@ -17,14 +17,14 @@ books:
     publishButton: "<green>[Publish Poll]</green>"
     cancelButton: "<red>[Cancel]</red>"
     optionButtonFormat: "<yellow>[Set Option {index}]</yellow>"
-    optionUnset: "<gray>[not set]</gray>"
-    pageNote: "<gray>Set up to 6 options. Use buttons to edit.</gray>"
+    optionUnset: "<black>[Not Set]"
+    pageNote: "<black>Set up to 6 options. Use buttons to edit.</black>"
   voting:
     title: "<gradient:#FFB833:#FF5733>Community Poll</gradient>"
     author: "Polls"
-    headerFormat: "<gold>Q:</gold> <white>{question}</white>\n<gray>Closes:</gray> <white>{closes_at}</white>\n"
-    optionLineFormat: "{icon} <white>{option}</white> <gray>(click to vote)</gray>"
-    alreadyVotedLineFormat: "{icon} <white>{option}</white> <gray>(you voted)</gray>"
+    headerFormat: "<gold>Q:</gold> <white>{question}</white>\n<black>Closes:</black> <white>{closes_at}</white>\n"
+    optionLineFormat: "{icon} <white>{option}</white> <black>(click to vote)</black>"
+    alreadyVotedLineFormat: "{icon} <white>{option}</white> <black>(you voted)</black>"
 
 # Customizable icons used before option text
 icons:

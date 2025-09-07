@@ -41,7 +41,7 @@ public class BookFactory {
         String publish = plugin.getConfig().getString("books.creation.publishButton", "[Publish Poll]");
         String cancel = plugin.getConfig().getString("books.creation.cancelButton", "[Cancel]");
         String optionFmt = plugin.getConfig().getString("books.creation.optionButtonFormat", "[Set Option {index}]");
-        String optionUnset = plugin.getConfig().getString("books.creation.optionUnset", "[not set]");
+        String optionUnset = plugin.getConfig().getString("books.creation.optionUnset", "[Not Set]");
         String pageNote = plugin.getConfig().getString("books.creation.pageNote", "Set up to 6 options.");
 
         List<Component> pages = new ArrayList<>();
@@ -51,10 +51,10 @@ public class BookFactory {
 
         Component page = mm.deserialize(header)
                 .append(newline())
-                .append(mm.deserialize("<gray>Question:</gray> "))
+                .append(mm.deserialize("<black>Question:</black> "))
                 .append(mm.deserialize(question))
                 .append(newline())
-                .append(mm.deserialize("<gray>Duration:</gray> "))
+                .append(mm.deserialize("<black>Duration:</black> "))
                 .append(mm.deserialize(duration))
                 .append(newline())
                 .append(newline())
@@ -70,9 +70,9 @@ public class BookFactory {
             String label = optionFmt.replace("{index}", String.valueOf(i + 1));
             String value = session.getOption(i) == null ? optionUnset : session.getOption(i);
             page = page.append(clickable(label, "/poll edit option " + (i + 1)))
-                    .append(mm.deserialize(" <gray>"))
+                    .append(mm.deserialize(" <black>"))
                     .append(mm.deserialize(value))
-                    .append(mm.deserialize("</gray>"))
+                    .append(mm.deserialize("</black>"))
                     .append(newline());
         }
 
