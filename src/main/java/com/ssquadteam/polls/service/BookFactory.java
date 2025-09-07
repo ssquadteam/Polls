@@ -81,8 +81,8 @@ public class BookFactory {
                 .append(Component.text(" "))
                 .append(clickable(cancel, "/poll cancel"));
 
-        meta.title(mm.stripTags(title));
-        meta.author(mm.stripTags(author));
+        meta.title(Component.text(mm.stripTags(title)));
+        meta.author(Component.text(mm.stripTags(author)));
         meta.addPages(page);
         book.setItemMeta(meta);
 
@@ -131,8 +131,8 @@ public class BookFactory {
             page = page.append(lineComp).append(newline());
         }
 
-        meta.title(mm.stripTags(title));
-        meta.author(mm.stripTags(author));
+        meta.title(Component.text(mm.stripTags(title)));
+        meta.author(Component.text(mm.stripTags(author)));
         meta.addPages(page);
         book.setItemMeta(meta);
 
