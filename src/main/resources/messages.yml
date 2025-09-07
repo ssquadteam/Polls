@@ -12,6 +12,7 @@ errors:
   invalid_duration: "<red>Invalid duration. Example: 1d2h30m</red>"
   missing_code: "<red>Please set a Poll ID first.</red>"
   code_in_use: "<red>That Poll ID is already in use.</red>"
+  missing_id: "<red>You must provide an ID. Usage: /poll create <id> [duration] [question]</red>"
 creation:
   started: "<green>Poll creation started. A book opened with controls.</green>"
   prompt_code: "<white>Set a unique Poll ID</white> <gray>(letters, numbers, dashes)</gray>\n<gray>Input in chat-</gray>"
@@ -40,3 +41,14 @@ remove:
   success: "<red>Poll {id} removed.</red>"
 view:
   opened: "<gray>Opening poll book...</gray>"
+
+help:
+  header: "<white>Polls Help</white>"
+  usage_create: "<gray>/{label} create <id> [duration] [question]</gray>"
+  usage_edit: "<gray>/{label} edit <id|code></gray>"
+  usage_view: "<gray>/{label} view <id|code></gray>"
+  usage_vote: "<gray>/{label} vote <id> <optionIndex></gray>"
+  usage_list: "<gray>/{label} list</gray>"
+  usage_close: "<gray>/{label} close <id|code></gray>"
+  usage_remove: "<gray>/{label} remove <id|code></gray>"
+  usage_cancelcreation: "<gray>/{label} cancelcreation</gray>"

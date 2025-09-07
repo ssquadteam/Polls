@@ -13,6 +13,9 @@ public class DurationUtil {
     public static Long parseDurationSeconds(String raw) {
         if (raw == null || raw.isBlank()) return null;
         raw = raw.trim().toLowerCase(Locale.ROOT);
+        raw = raw.replaceAll("(?i)[§&][0-9a-fk-or]", "");
+        raw = raw.replaceAll("\\s+", "");
+        raw = raw.replaceAll("[^0-9dhms]", "");
         Matcher m = PATTERN.matcher(raw);
         if (!m.matches()) return null;
         long days = parseGroup(m, 1);

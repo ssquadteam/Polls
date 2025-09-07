@@ -39,7 +39,7 @@ public class ChatListener implements Listener {
                 plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");
             }
             case QUESTION -> {
-                session.setQuestion(msg);
+                session.setQuestion(plugin.getMessageService().sanitizeForMiniMessage(msg));
                 session.clearAwaiting();
                 plugin.getMessageService().send(event.getPlayer(), "creation.set_question", Map.of());
                 plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");
@@ -59,7 +59,7 @@ public class ChatListener implements Listener {
             }
             case OPTION -> {
                 int idx = session.getAwaitingOptionIndex();
-                session.setOption(idx, msg);
+                session.setOption(idx, plugin.getMessageService().sanitizeForMiniMessage(msg));
                 session.clearAwaiting();
                 plugin.getMessageService().send(event.getPlayer(), "creation.set_option", Map.of("index", String.valueOf(idx + 1)));
                 plugin.getMessageService().playSound(event.getPlayer(), "ui.set_value");

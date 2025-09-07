@@ -58,8 +58,8 @@ public class BookFactory {
 
         List<Component> pages = new ArrayList<>();
 
-        String code = session.getCode() == null ? optionUnset : session.getCode();
-        String question = session.getQuestion() == null ? optionUnset : session.getQuestion();
+        String code = session.getCode() == null ? optionUnset : plugin.getMessageService().sanitizeForMiniMessage(session.getCode());
+        String question = session.getQuestion() == null ? optionUnset : plugin.getMessageService().sanitizeForMiniMessage(session.getQuestion());
         String duration = session.getDurationSeconds() == null ? optionUnset : plugin.getMessageService().formatRelativeTime(session.previewClosesAt());
 
         Component page1 = mm.deserialize(header)

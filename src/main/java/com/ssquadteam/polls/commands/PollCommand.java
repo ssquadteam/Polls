@@ -42,7 +42,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            messages.send(sender, "errors.invalid_args", Map.of());
+            sendHelp(sender, label);
             return true;
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
@@ -62,6 +62,18 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private void sendHelp(CommandSender sender, String label) {
+        messages.send(sender, "help.header", Map.of());
+        messages.send(sender, "help.usage_create", Map.of("label", label));
+        messages.send(sender, "help.usage_edit", Map.of("label", label));
+        messages.send(sender, "help.usage_view", Map.of("label", label));
+        messages.send(sender, "help.usage_vote", Map.of("label", label));
+        messages.send(sender, "help.usage_list", Map.of("label", label));
+        messages.send(sender, "help.usage_close", Map.of("label", label));
+        messages.send(sender, "help.usage_remove", Map.of("label", label));
+        messages.send(sender, "help.usage_cancelcreation", Map.of("label", label));
+    }
+
     private void handleCreate(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             messages.send(sender, "errors.only_players", Map.of());
@@ -76,22 +88,39 @@ public class PollCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        if (args.length < 1) {
+            messages.send(player, "errors.missing_id", Map.of());
+            return;
+        }
+
+        String providedId = plugin.getMessageService().sanitizeForMiniMessage(args[0]).trim();
+        if (providedId.isEmpty()) {
+            messages.send(player, "errors.missing_id", Map.of());
+            return;
+        }
+        // Ensure not in use already for new creation
+        if (pollManager.getStorage().findByIdOrCode(providedId) != null) {
+            messages.send(player, "errors.code_in_use", Map.of());
+            return;
+        }
+
         Long durationSeconds = null;
         String question = null;
-        if (args.length >= 1) {
-            Long parsed = DurationUtil.parseDurationSeconds(args[0]);
+        if (args.length >= 2) {
+            Long parsed = DurationUtil.parseDurationSeconds(args[1]);
             if (parsed != null) {
                 durationSeconds = parsed;
-                if (args.length >= 2) {
-                    question = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+                if (args.length >= 3) {
+                    question = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
                 }
             } else {
-                // No valid duration provided; treat entire args as question
-                question = String.join(" ", args);
+                // Not a duration; treat rest as question
+                question = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
             }
         }
 
         PollCreationSession session = sessions.startSession(player.getUniqueId());
+        session.setCode(providedId);
         if (question != null && !question.isBlank()) session.setQuestion(question);
         if (durationSeconds != null) session.setDurationSeconds(durationSeconds);
 
