@@ -270,6 +270,10 @@ public class PollCommand implements CommandExecutor, TabCompleter {
 
             Poll target = storage.findByIdOrCode(idOrCode);
             if (target == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
+            if (target.getStatus() == PollStatus.CLOSED) {
+                messages.send(player, "errors.cannot_edit_closed", Map.of());
+                return;
+            }
             session = sessions.startSession(player.getUniqueId());
             session.startEditing(target.getId());
             session.setCode(target.getCode());

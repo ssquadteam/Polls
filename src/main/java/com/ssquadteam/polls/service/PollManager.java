@@ -52,6 +52,10 @@ public class PollManager {
         if (session.isEditingExisting()) {
             poll = storage.getPoll(session.getEditingPollId());
             if (poll == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
+            if (poll.getStatus() == PollStatus.CLOSED) {
+                messages.send(player, "errors.cannot_edit_closed", Map.of());
+                return;
+            }
             poll.setQuestion(session.getQuestion() == null ? poll.getQuestion() : session.getQuestion());
             poll.setOptions(options);
             poll.setClosesAtEpochSeconds(closesAt);

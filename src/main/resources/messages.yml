@@ -7,6 +7,7 @@ errors:
   invalid_option: "<red>Invalid option index.</red>"
   already_voted: "<yellow>You already voted in this poll.</yellow>"
   poll_closed: "<red>This poll is closed.</red>"
+  cannot_edit_closed: "<red>Closed polls cannot be edited.</red>"
   creation_in_progress: "<yellow>You already have an active poll creation.</yellow>"
   nothing_to_publish: "<yellow>Set at least two options before publishing.</yellow>"
   invalid_duration: "<red>Invalid duration. Example: 1d2h30m</red>"

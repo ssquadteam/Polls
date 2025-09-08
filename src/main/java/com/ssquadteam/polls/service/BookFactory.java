@@ -97,11 +97,22 @@ public class BookFactory {
                     .append(clickable(label + " " + value, "/poll edit option " + (i + 1), hover))
                     .append(newline());
         }
-        page2 = page2.append(newline())
-                .append(mm.deserialize(indent))
-                .append(clickable(publish, "/poll publish", hoverPublish))
-                .append(Component.text(" "))
-                .append(clickable(cancel, "/poll cancel", hoverCancel));
+        // If editing a closed poll, show a disabled note instead of publish button
+        boolean editingClosed = session.isEditingExisting() && plugin.getPollManager().getStorage().getPoll(session.getEditingPollId()).getStatus() == PollStatus.CLOSED;
+        if (editingClosed) {
+            page2 = page2.append(newline())
+                    .append(mm.deserialize(indent))
+                    .append(mm.deserialize("<red>Closed polls cannot be edited.</red>"))
+                    .append(newline())
+                    .append(mm.deserialize(indent))
+                    .append(clickable(cancel, "/poll cancel", hoverCancel));
+        } else {
+            page2 = page2.append(newline())
+                    .append(mm.deserialize(indent))
+                    .append(clickable(publish, "/poll publish", hoverPublish))
+                    .append(Component.text(" "))
+                    .append(clickable(cancel, "/poll cancel", hoverCancel));
+        }
 
         // Next page info at end of page 1
         page1 = page1.append(newline()).append(mm.deserialize(indent + nextPageNote));
