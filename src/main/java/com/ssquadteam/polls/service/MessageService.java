@@ -42,7 +42,17 @@ public class MessageService {
         String prefix = messages.getString("prefix", "");
         String value = messages.getString(path, path);
         value = apply(placeholders, value);
-        sender.sendMessage(mm.deserialize(prefix + value));
+        Component component = mm.deserialize(prefix + value);
+
+        if (sender instanceof Player player) {
+            if (plugin instanceof com.ssquadteam.polls.PollsPlugin polls) {
+                polls.getFolia().getScheduler().runAtEntity(player, task -> player.sendMessage(component));
+            } else {
+                player.sendMessage(component);
+            }
+        } else {
+            sender.sendMessage(component);
+        }
     }
 
     public void sendWithSound(CommandSender sender, String path, Map<String, String> placeholders, String soundKey) {
@@ -63,7 +73,17 @@ public class MessageService {
     public void broadcast(String path, Map<String, String> placeholders) {
         String value = messages.getString(path, path);
         String rendered = apply(placeholders, value);
-        plugin.getServer().broadcast(mm.deserialize(messages.getString("prefix", "") + rendered));
+        Component component = mm.deserialize(messages.getString("prefix", "") + rendered);
+
+        if (plugin instanceof com.ssquadteam.polls.PollsPlugin polls) {
+            for (Player p : plugin.getServer().getOnlinePlayers()) {
+                polls.getFolia().getScheduler().runAtEntity(p, task -> p.sendMessage(component));
+            }
+            plugin.getServer().getConsoleSender().sendMessage(component);
+        } else {
+            plugin.getServer().broadcast(component);
+        }
+
         String soundKey = plugin.getConfig().getString("sounds.ui.publish");
         if (plugin.getConfig().getBoolean("sounds.enabled", true) && soundKey != null) {
             for (Player p : plugin.getServer().getOnlinePlayers()) {

@@ -3,7 +3,7 @@ package com.ssquadteam.polls.service;
 import com.ssquadteam.polls.PollsPlugin;
 import com.ssquadteam.polls.model.PollDraft;
 import com.ssquadteam.polls.service.session.PollCreationSession;
-import org.bukkit.Bukkit;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.entity.Player;
 
 import java.time.Instant;
@@ -18,7 +18,7 @@ public class SessionManager {
 
     private final PollsPlugin plugin;
     private final Map<UUID, PollCreationSession> sessions = new HashMap<>();
-    private final Map<UUID, Integer> autoReopenTasks = new HashMap<>();
+    private final Map<UUID, WrappedTask> autoReopenTasks = new HashMap<>();
     private final Set<UUID> playersWithOpenBooks = new HashSet<>();
     private final Map<String, PollDraft> drafts = new HashMap<>();
 
@@ -37,8 +37,8 @@ public class SessionManager {
 
     public void endSession(UUID playerId) {
         sessions.remove(playerId);
-        Integer taskId = autoReopenTasks.remove(playerId);
-        if (taskId != null) plugin.getServer().getScheduler().cancelTask(taskId);
+        WrappedTask task = autoReopenTasks.remove(playerId);
+        if (task != null) task.cancel();
     }
 
     public void awaitQuestion(UUID playerId) {
@@ -116,14 +116,14 @@ public class SessionManager {
         int interval = plugin.getConfig().getInt("books.creation.autoReopen.intervalTicks", 60);
         boolean onlyWhenIdle = plugin.getConfig().getBoolean("books.creation.autoReopen.onlyWhenIdle", true);
 
-        Integer existing = autoReopenTasks.remove(playerId);
-        if (existing != null) plugin.getServer().getScheduler().cancelTask(existing);
+        WrappedTask existing = autoReopenTasks.remove(playerId);
+        if (existing != null) existing.cancel();
 
-        int taskId = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+        WrappedTask task = plugin.getFolia().getScheduler().runTimer(() -> {
             PollCreationSession s = sessions.get(playerId);
             if (s == null) {
-                Integer tid = autoReopenTasks.remove(playerId);
-                if (tid != null) plugin.getServer().getScheduler().cancelTask(tid);
+                WrappedTask tid = autoReopenTasks.remove(playerId);
+                if (tid != null) tid.cancel();
                 return;
             }
             if (onlyWhenIdle && s.getAwaiting() != PollCreationSession.Awaiting.NONE) return;
@@ -131,7 +131,7 @@ public class SessionManager {
             Player p = plugin.getServer().getPlayer(playerId);
             if (p == null || !p.isOnline()) return;
             plugin.getBookFactory().openCreationBook(p, s);
-        }, interval, interval).getTaskId();
-        autoReopenTasks.put(playerId, taskId);
+        }, interval, interval);
+        autoReopenTasks.put(playerId, task);
     }
 }
