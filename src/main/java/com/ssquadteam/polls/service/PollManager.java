@@ -71,12 +71,12 @@ public class PollManager {
         plugin.getSessionManager().endSession(player.getUniqueId());
 
         Map<String, String> ph = Map.of(
-                "id", id.toString(),
+                "code", poll.getCode(),
                 "question", poll.getQuestion(),
                 "pretty", messages.formatRelativeTime(poll.getClosesAtEpochSeconds())
         );
         messages.broadcast("announce.new_poll", ph);
-        messages.send(player, "creation.published", Map.of("id", id.toString()));
+        messages.send(player, "creation.published", Map.of("code", poll.getCode()));
     }
 
     public void trackOpenPoll(Poll poll) {

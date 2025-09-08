@@ -12,7 +12,7 @@ books:
     title: "<gradient:#7BD3EA:#2176FF>Poll Creator</gradient>"
     author: "Polls"
     header: "<gray>Create a new poll</gray>\n"
-    editCodeButton: "<blue>[Edit ID]</blue>"
+    editCodeButton: "<blue>[Edit Code]</blue>"
     editQuestionButton: "<blue>[Edit Question]</blue>"
     editDurationButton: "<blue>[Edit Duration]</blue>"
     publishButton: "<green>[Publish Poll]</green>"
@@ -23,7 +23,7 @@ books:
     nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
     indent: "  "
     labels:
-      id: "<gray>ID:</gray>"
+      id: "<gray>Code:</gray>"
       question: "<gray>Question:</gray>"
       duration: "<gray>Duration:</gray>"
     autoReopen:
@@ -31,7 +31,7 @@ books:
       intervalTicks: 20
       onlyWhenIdle: true
     hover:
-      code: "<gray>Click to set ID</gray>"
+      code: "<gray>Click to set code</gray>"
       question: "<gray>Click to set question</gray>"
       duration: "<gray>Click to set duration</gray>"
       option: "<gray>Click to set option {index}</gray>"
@@ -47,6 +47,7 @@ books:
       row1: "<black><black>%icon1% <dark_gray>%question1%</dark_gray> <gray>(%state1%)</gray>"
       row2: "<black><black>%icon2% <dark_gray>%question2%</dark_gray> <gray>(%state2%)</gray>"
       row3: "<black><black>%icon3% <dark_gray>%question3%</dark_gray> <gray>(%state3%)</gray>"
+      # Add row4, row5, row6 as needed.
       page2Format: "%icon% <dark_gray>%question%</dark_gray> <gray>(%state%)</gray>"
     nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
     indent: "  "

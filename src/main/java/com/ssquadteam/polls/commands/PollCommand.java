@@ -142,11 +142,11 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         Poll poll = storage.findByIdOrCode(args[0]);
         if (poll == null) { messages.send(sender, "errors.invalid_poll", Map.of()); return; }
         if (poll.getStatus() == PollStatus.CLOSED) {
-            messages.send(sender, "close.success", Map.of("id", poll.getId().toString()));
+            messages.send(sender, "close.success", Map.of("code", poll.getCode()));
             return;
         }
         pollManager.closePoll(poll, true);
-        messages.send(sender, "close.success", Map.of("id", poll.getId().toString()));
+        messages.send(sender, "close.success", Map.of("code", poll.getCode()));
         if (sender instanceof Player p) plugin.getMessageService().playSound(p, "ui.set_value");
     }
 
@@ -162,7 +162,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         Poll poll = storage.findByIdOrCode(args[0]);
         if (poll == null) { messages.send(sender, "errors.invalid_poll", Map.of()); return; }
         pollManager.removePoll(poll.getId());
-        messages.send(sender, "remove.success", Map.of("id", poll.getId().toString()));
+        messages.send(sender, "remove.success", Map.of("code", poll.getCode()));
         if (sender instanceof Player p) plugin.getMessageService().playSound(p, "ui.cancel");
     }
 
@@ -176,7 +176,7 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         for (Poll poll : polls) {
             String pretty = plugin.getMessageService().formatRelativeTime(poll.getClosesAtEpochSeconds());
             Map<String, String> ph = Map.of(
-                    "id", poll.getId().toString(),
+                    "code", poll.getCode(),
                     "question", poll.getQuestion(),
                     "pretty", pretty
             );
@@ -207,12 +207,12 @@ public class PollCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (args.length < 2) { messages.send(player, "errors.invalid_args", Map.of()); return; }
-        UUID id = parseUUID(args[0]);
-        if (id == null) { messages.send(player, "errors.invalid_poll", Map.of()); plugin.getMessageService().playSound(player, "ui.error"); return; }
+        Poll poll = storage.findByIdOrCode(args[0]);
+        if (poll == null) { messages.send(player, "errors.invalid_poll", Map.of()); plugin.getMessageService().playSound(player, "ui.error"); return; }
         int index;
         try { index = Integer.parseInt(args[1]); } catch (Exception e) { messages.send(player, "errors.invalid_option", Map.of()); plugin.getMessageService().playSound(player, "ui.error"); return; }
 
-        pollManager.vote(player, id, index);
+        pollManager.vote(player, poll.getId(), index);
     }
 
     private void handlePublish(CommandSender sender) {

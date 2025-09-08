@@ -187,9 +187,9 @@ public class BookFactory {
                     .replace("%icon" + (i + 1) + "%", icon)
                     .replace("%question" + (i + 1) + "%", poll.getOptions().get(i))
                     .replace("%state" + (i + 1) + "%", state);
-            Component comp = withHover(mm.deserialize(line), hoverOption);
+            Component comp = withHover(mm.deserialize(line), (playerVote != null || !poll.isOpen()) ? hoverAlready : hoverOption);
             if (playerVote == null && poll.isOpen()) {
-                comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getId() + " " + i));
+                comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getCode() + " " + i));
             }
             page = page.append(mm.deserialize(indent)).append(comp).append(newline());
         }
@@ -213,7 +213,7 @@ public class BookFactory {
                         .replace("%state%", state);
                 Component comp = withHover(mm.deserialize(line), (playerVote != null || !poll.isOpen()) ? hoverAlready : hoverOption);
                 if (playerVote == null && poll.isOpen()) {
-                    comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getId() + " " + i));
+                    comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getCode() + " " + i));
                 }
                 page2 = page2.append(mm.deserialize(indent)).append(comp).append(newline());
             }
