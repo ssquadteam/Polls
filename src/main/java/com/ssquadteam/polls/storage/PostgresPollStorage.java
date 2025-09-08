@@ -6,35 +6,67 @@ import com.ssquadteam.polls.PollsPlugin;
 import com.ssquadteam.polls.model.Poll;
 import com.ssquadteam.polls.model.PollStatus;
 
-import java.io.File;
 import java.lang.reflect.Type;
 import java.sql.*;
 import java.time.Instant;
 import java.util.*;
 
-public class SQLitePollStorage implements PollStorage {
+public class PostgresPollStorage implements PollStorage {
 
     private final PollsPlugin plugin;
     private Connection connection;
     private final Gson gson = new Gson();
 
-    public SQLitePollStorage(PollsPlugin plugin) {
+    public PostgresPollStorage(PollsPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public void init() {
         try {
-            File dbFile = new File(plugin.getDataFolder(), plugin.getConfig().getString("storage.sqlite.file", "polls.db"));
-            if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
-            String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
-            connection = DriverManager.getConnection(url);
+            // Attempt to load the driver (optional on modern JVMs but provides clearer error if missing)
+            try { Class.forName("org.postgresql.Driver"); } catch (ClassNotFoundException ignored) {}
+
+            String url = plugin.getConfig().getString("storage.postgres.url", null);
+            if (url == null || url.isBlank()) {
+                String host = plugin.getConfig().getString("storage.postgres.host", "localhost");
+                int port = plugin.getConfig().getInt("storage.postgres.port", 5432);
+                String database = plugin.getConfig().getString("storage.postgres.database", "polls");
+                String params = plugin.getConfig().getString("storage.postgres.params", ""); // e.g., sslmode=require
+                String base = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+                url = params == null || params.isBlank() ? base : base + "?" + params;
+            }
+            String user = plugin.getConfig().getString("storage.postgres.user", "postgres");
+            String password = plugin.getConfig().getString("storage.postgres.password", "");
+
+            Properties props = new Properties();
+            props.setProperty("user", user);
+            props.setProperty("password", password);
+
+            connection = DriverManager.getConnection(url, props);
+
             try (Statement st = connection.createStatement()) {
-                st.executeUpdate("CREATE TABLE IF NOT EXISTS polls (id TEXT PRIMARY KEY, code TEXT UNIQUE, question TEXT NOT NULL, options_json TEXT NOT NULL, created_at INTEGER NOT NULL, closes_at INTEGER NOT NULL, status TEXT NOT NULL)");
-                st.executeUpdate("CREATE TABLE IF NOT EXISTS votes (poll_id TEXT NOT NULL, player_uuid TEXT NOT NULL, option_index INTEGER NOT NULL, voted_at INTEGER NOT NULL, PRIMARY KEY (poll_id, player_uuid))");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS polls (" +
+                        "id UUID PRIMARY KEY, " +
+                        "code TEXT UNIQUE, " +
+                        "question TEXT NOT NULL, " +
+                        "options_json TEXT NOT NULL, " +
+                        "created_at BIGINT NOT NULL, " +
+                        "closes_at BIGINT NOT NULL, " +
+                        "status TEXT NOT NULL" +
+                        ")");
+
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS votes (" +
+                        "poll_id UUID NOT NULL, " +
+                        "player_uuid UUID NOT NULL, " +
+                        "option_index INTEGER NOT NULL, " +
+                        "voted_at BIGINT NOT NULL, " +
+                        "PRIMARY KEY (poll_id, player_uuid), " +
+                        "FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE" +
+                        ")");
             }
         } catch (SQLException e) {
-            plugin.getLogger().severe("Failed to init SQLite: " + e.getMessage());
+            plugin.getLogger().severe("Failed to init Postgres: " + e.getMessage());
         }
     }
 
@@ -46,9 +78,9 @@ public class SQLitePollStorage implements PollStorage {
     @Override
     public void savePoll(Poll poll) {
         String sql = "INSERT INTO polls (id, code, question, options_json, created_at, closes_at, status) VALUES (?, ?, ?, ?, ?, ?, ?) " +
-                "ON CONFLICT(id) DO UPDATE SET code=excluded.code, question=excluded.question, options_json=excluded.options_json, created_at=excluded.created_at, closes_at=excluded.closes_at, status=excluded.status";
+                "ON CONFLICT (id) DO UPDATE SET code=EXCLUDED.code, question=EXCLUDED.question, options_json=EXCLUDED.options_json, created_at=EXCLUDED.created_at, closes_at=EXCLUDED.closes_at, status=EXCLUDED.status";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, poll.getId().toString());
+            ps.setObject(1, poll.getId());
             ps.setString(2, poll.getCode());
             ps.setString(3, poll.getQuestion());
             ps.setString(4, gson.toJson(poll.getOptions()));
@@ -65,7 +97,7 @@ public class SQLitePollStorage implements PollStorage {
     public Poll getPoll(UUID id) {
         String sql = "SELECT code, question, options_json, created_at, closes_at, status FROM polls WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, id.toString());
+            ps.setObject(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String code = rs.getString(1);
@@ -96,7 +128,7 @@ public class SQLitePollStorage implements PollStorage {
             ps.setString(1, idOrCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    UUID id = UUID.fromString(rs.getString(1));
+                    UUID id = (UUID) rs.getObject(1);
                     String code = rs.getString(2);
                     String question = rs.getString(3);
                     List<String> options = gson.fromJson(rs.getString(4), listStringType());
@@ -120,7 +152,7 @@ public class SQLitePollStorage implements PollStorage {
         String sql = "SELECT id, code, question, options_json, created_at, closes_at, status FROM polls ORDER BY created_at DESC";
         try (Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                UUID id = UUID.fromString(rs.getString(1));
+                UUID id = (UUID) rs.getObject(1);
                 String code = rs.getString(2);
                 String question = rs.getString(3);
                 List<String> options = gson.fromJson(rs.getString(4), listStringType());
@@ -141,9 +173,9 @@ public class SQLitePollStorage implements PollStorage {
     public void removePoll(UUID id) {
         try (PreparedStatement ps1 = connection.prepareStatement("DELETE FROM votes WHERE poll_id = ?");
              PreparedStatement ps2 = connection.prepareStatement("DELETE FROM polls WHERE id = ?")) {
-            ps1.setString(1, id.toString());
+            ps1.setObject(1, id);
             ps1.executeUpdate();
-            ps2.setString(1, id.toString());
+            ps2.setObject(1, id);
             ps2.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to remove poll: " + e.getMessage());
@@ -153,10 +185,10 @@ public class SQLitePollStorage implements PollStorage {
     @Override
     public void saveVote(UUID pollId, UUID player, int optionIndex) {
         String sql = "INSERT INTO votes (poll_id, player_uuid, option_index, voted_at) VALUES (?, ?, ?, ? ) " +
-                "ON CONFLICT(poll_id, player_uuid) DO NOTHING";
+                "ON CONFLICT (poll_id, player_uuid) DO NOTHING";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, pollId.toString());
-            ps.setString(2, player.toString());
+            ps.setObject(1, pollId);
+            ps.setObject(2, player);
             ps.setInt(3, optionIndex);
             ps.setLong(4, Instant.now().getEpochSecond());
             ps.executeUpdate();
@@ -169,8 +201,8 @@ public class SQLitePollStorage implements PollStorage {
     public boolean hasVoted(UUID pollId, UUID player) {
         String sql = "SELECT 1 FROM votes WHERE poll_id = ? AND player_uuid = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, pollId.toString());
-            ps.setString(2, player.toString());
+            ps.setObject(1, pollId);
+            ps.setObject(2, player);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
             }
@@ -184,8 +216,8 @@ public class SQLitePollStorage implements PollStorage {
     public Integer getPlayerVote(UUID pollId, UUID player) {
         String sql = "SELECT option_index FROM votes WHERE poll_id = ? AND player_uuid = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, pollId.toString());
-            ps.setString(2, player.toString());
+            ps.setObject(1, pollId);
+            ps.setObject(2, player);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt(1);
             }
@@ -200,7 +232,7 @@ public class SQLitePollStorage implements PollStorage {
         Map<Integer, Integer> map = new HashMap<>();
         String sql = "SELECT option_index, COUNT(*) FROM votes WHERE poll_id = ? GROUP BY option_index";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, pollId.toString());
+            ps.setObject(1, pollId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     map.put(rs.getInt(1), rs.getInt(2));

@@ -20,13 +20,12 @@ repositories {
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT'
 
-    implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
+    compileOnly 'org.postgresql:postgresql:42.7.3'
     implementation 'com.google.code.gson:gson:2.11.0'
 }
 
 shadowJar {
     archiveClassifier.set('')
-    relocate 'org.sqlite', 'com.ssquadteam.polls.libs.org.sqlite'
     relocate 'com.google.gson', 'com.ssquadteam.polls.libs.com.google.gson'
 }
 

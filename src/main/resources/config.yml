@@ -1,10 +1,18 @@
-# Storage backend: sqlite or json
+# Storage backend: json or postgres
 storage:
-  type: sqlite
-  sqlite:
-    file: polls.db
+  type: json
   json:
     file: polls.json
+  postgres:
+    # Either provide full JDBC URL, or host/port/database/user/password below
+    # url: jdbc:postgresql://localhost:5432/polls?sslmode=disable
+    host: localhost
+    port: 5432
+    database: polls
+    user: postgres
+    password: ""
+    # Optional query string parameters, e.g. sslmode=require
+    params: ""
 
 # Book customization using MiniMessage formatting
 books:

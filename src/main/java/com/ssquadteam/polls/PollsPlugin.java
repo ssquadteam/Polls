@@ -11,7 +11,7 @@ import com.ssquadteam.polls.service.PollManager;
 import com.ssquadteam.polls.service.SessionManager;
 import com.ssquadteam.polls.storage.JsonPollStorage;
 import com.ssquadteam.polls.storage.PollStorage;
-import com.ssquadteam.polls.storage.SQLitePollStorage;
+import com.ssquadteam.polls.storage.PostgresPollStorage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -46,13 +46,13 @@ public final class PollsPlugin extends JavaPlugin {
         this.bookFactory = new BookFactory(this);
 
         // Choose storage backend
-        String type = getConfig().getString("storage.type", "sqlite").toLowerCase();
+        String type = getConfig().getString("storage.type", "json").toLowerCase();
         switch (type) {
             case "json" -> this.storage = new JsonPollStorage(this);
-            case "sqlite" -> this.storage = new SQLitePollStorage(this);
+            case "postgres", "postgresql" -> this.storage = new PostgresPollStorage(this);
             default -> {
-                getLogger().warning("Unknown storage.type '" + type + "', defaulting to sqlite");
-                this.storage = new SQLitePollStorage(this);
+                getLogger().warning("Unknown storage.type '" + type + "', defaulting to json");
+                this.storage = new JsonPollStorage(this);
             }
         }
         this.storage.init();
