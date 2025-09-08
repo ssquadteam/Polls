@@ -17,18 +17,18 @@ storage:
 # Book customization using MiniMessage formatting
 books:
   creation:
-    title: "<gradient:#7BD3EA:#2176FF>Poll Creator</gradient>"
-    author: "Polls"
-    header: "<gray>Create a new poll</gray>\n"
-    editCodeButton: "<blue>[Edit Code]</blue>"
-    editQuestionButton: "<blue>[Edit Question]</blue>"
-    editDurationButton: "<blue>[Edit Duration]</blue>"
-    publishButton: "<green>[Publish Poll]</green>"
-    cancelButton: "<red>[Cancel]</red>"
-    optionButtonFormat: "<gray>[Set Option {index}]</gray>"
-    optionUnset: "<dark_gray>[Not Set]"
-    pageNote: "<gray>Set up to 6 options. Use buttons to edit.</gray>"
-    nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
+    title: "<gradient:#7BD3EA:#2176FF>ᴘᴏʟʟ ᴄʀᴇᴀᴛᴏʀ</gradient>"
+    author: "ᴘᴏʟʟꜱ"
+    header: "<gray>ᴄʀᴇᴀᴛᴇ ᴀ ɴᴇᴡ ᴘᴏʟʟ</gray>\n"
+    editCodeButton: "<blue>[ᴇᴅɪᴛ ᴄᴏᴅᴇ]</blue>"
+    editQuestionButton: "<blue>[ᴇᴅɪᴛ qᴜᴇꜱᴛɪᴏɴ]</blue>"
+    editDurationButton: "<blue>[ᴇᴅɪᴛ ᴅᴜʀᴀᴛɪᴏɴ]</blue>"
+    publishButton: "<green>[ᴘᴜʙʟɪꜱʜ ᴘᴏʟʟ]</green>"
+    cancelButton: "<red>[ᴄᴀɴᴄᴇʟ]</red>"
+    optionButtonFormat: "<gray>[ꜱᴇᴛ ᴏᴘᴛɪᴏɴ {index}]</gray>"
+    optionUnset: "<dark_gray>[ɴᴏᴛ ꜱᴇᴛ]"
+    pageNote: "<gray>ꜱᴇᴛ ᴜᴘ ᴛᴏ 6 ᴏᴘᴛɪᴏɴꜱ. ᴜꜱᴇ ʙᴜᴛᴛᴏɴꜱ ᴛᴏ ᴇᴅɪᴛ.</gray>"
+    nextPageNote: "<dark_gray>ᴛᴜʀɴ ᴘᴀɢᴇ ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ →</dark_gray>"
     indent: "  "
     labels:
       id: "<gray>Code:</gray>"
@@ -46,33 +46,32 @@ books:
       publish: "<green>Click to publish</green>"
       cancel: "<red>Click to cancel</red>"
   voting:
-    title: "<gradient:#7BD3EA:#2176FF>Community Poll</gradient>"
-    author: "Polls"
-    headerFormat: "<gray>Q:</gray> <dark_gray>{question}</dark_gray>\n<gray>Closes:</gray> <dark_gray>{closes_at}</dark_gray>\n"
-    closedMessage: "<red>Poll has closed</red>"
+    title: "<gradient:#7BD3EA:#2176FF>ᴄᴏᴍᴍᴜɴɪᴛʏ ᴘᴏʟʟ</gradient>"
+    author: "ᴘᴏʟʟꜱ"
+    headerFormat: "<gray>q:</gray> <dark_gray>{question}</dark_gray>\n<gray>ᴄʟᴏꜱᴇꜱ:</gray> <dark_gray>{closes_at}</dark_gray>\n"
+    closedMessage: "<red>ᴘᴏʟʟ ʜᴀꜱ ᴄʟᴏꜱᴇᴅ</red>"
     labels:
       question: "<gray>Q:</gray>"
       closes: "<gray>Closes:</gray>"
     maxQuestionLength: 100
     maxOptionLength: 50
-    optionLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(click to vote)</gray>"
-    alreadyVotedLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(you voted)</gray>"
+    optionLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(ᴄʟɪᴄᴋ ᴛᴏ ᴠᴏᴛᴇ)</gray>"
+    alreadyVotedLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(ʏᴏᴜ ᴠᴏᴛᴇᴅ)</gray>"
     rows:
       rowFormat: "%icon% <dark_gray>%question%</dark_gray> <gray>(%state%)</gray>"
     nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
     indent: "  "
     state:
-      # States for open polls
-      click: "<gray>Click to vote for %number%</gray>"
-      voted: "<yellow>You voted for %number%</yellow>"
-      majority: "<green>%number% has most votes</green>"
-      click_closed: "<gray>Voting closed</gray>"
-      voted_closed: "<yellow>You voted for %number%</yellow>"
-      majority_closed: "<green>%number% had highest votes</green>"
+      click: "<gray>ᴄʟɪᴄᴋ ᴛᴏ ᴠᴏᴛᴇ ꜰᴏʀ %number%</gray>"
+      voted: "<yellow>ʏᴏᴜ ᴠᴏᴛᴇᴅ ꜰᴏʀ %number%</yellow>"
+      majority: "<green>%number% ʜᴀꜱ ᴍᴏꜱᴛ ᴠᴏᴛᴇꜱ</green>"
+      click_closed: "<gray>ᴠᴏᴛɪɴɢ ᴄʟᴏꜱᴇᴅ</gray>"
+      voted_closed: "<yellow>ʏᴏᴜ ᴠᴏᴛᴇᴅ ꜰᴏʀ %number%</yellow>"
+      majority_closed: "<green>%number% ʜᴀᴅ ʜɪɢʜᴇꜱᴛ ᴠᴏᴛᴇꜱ</green>"
     hover:
-      option: "<gray>Pick this option.</gray>"
-      alreadyVotedOption: "<yellow>You already voted</yellow>"
-      question: "<gray>Poll question</gray>"
+      option: "<gray>ᴘɪᴄᴋ ᴛʜɪꜱ ᴏᴘᴛɪᴏɴ.</gray>"
+      alreadyVotedOption: "<yellow>ʏᴏᴜ ᴀʟʀᴇᴀᴅʏ ᴠᴏᴛᴇᴅ</yellow>"
+      question: "<gray>ᴘᴏʟʟ qᴜᴇꜱᴛɪᴏɴ</gray>"
 
 # Customizable icons used before option text
 icons:

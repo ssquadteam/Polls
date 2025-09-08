@@ -36,9 +36,7 @@ public class MessageService {
         this.messages = YamlConfiguration.loadConfiguration(file);
     }
 
-    public Component parse(String raw) {
-        return mm.deserialize(raw);
-    }
+    public Component parse(String raw) { return mm.deserialize(raw); }
 
     public void send(CommandSender sender, String path, Map<String, String> placeholders) {
         String prefix = messages.getString("prefix", "");
