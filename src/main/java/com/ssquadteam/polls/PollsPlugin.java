@@ -1,6 +1,7 @@
 package com.ssquadteam.polls;
 
 import com.ssquadteam.polls.commands.PollCommand;
+import com.ssquadteam.polls.listener.BookListener;
 import com.ssquadteam.polls.listener.ChatListener;
 import com.ssquadteam.polls.model.Poll;
 import com.ssquadteam.polls.model.PollStatus;
@@ -69,6 +70,7 @@ public final class PollsPlugin extends JavaPlugin {
         getCommand("poll").setTabCompleter(pollCommand);
 
         Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new BookListener(this), this);
 
         getLogger().info("Polls enabled with storage: " + type);
     }

@@ -112,6 +112,7 @@ public class BookFactory {
         book.setItemMeta(meta);
 
         open(player, book);
+        plugin.getSessionManager().markBookOpened(player.getUniqueId());
         plugin.getMessageService().playSound(player, "ui.open_creation");
     }
 
@@ -126,13 +127,12 @@ public class BookFactory {
         String cLabel = plugin.getConfig().getString("books.voting.labels.closes", "<gray>Closes:</gray>");
         String optionLineFmt = plugin.getConfig().getString("books.voting.optionLineFormat", "{icon} {option} (click to vote)");
         String alreadyVotedLineFmt = plugin.getConfig().getString("books.voting.alreadyVotedLineFormat", "{icon} {option} (you voted)");
-        // New configurable templated lines for first page rows
-        String row1 = plugin.getConfig().getString("books.voting.rows.row1", "<black>%icon1% %question1% (%state1%)");
-        String row2 = plugin.getConfig().getString("books.voting.rows.row2", "<black>%icon2% %question2% (%state2%)");
-        String row3 = plugin.getConfig().getString("books.voting.rows.row3", "<black>%icon3% %question3% (%state3%)");
-        String page2Format = plugin.getConfig().getString("books.voting.rows.page2Format", "%icon% %question% (%state%)");
+        String rowFormat = plugin.getConfig().getString("books.voting.rows.rowFormat", "%icon% <dark_gray>%question%</dark_gray> <gray>(%state%)</gray>");
         String nextPageHint = plugin.getConfig().getString("books.voting.nextPageNote", "<dark_gray>Turn page to continue →</dark_gray>");
+        String closedMessage = plugin.getConfig().getString("books.voting.closedMessage", "<red>Poll has closed</red>");
         String indent = plugin.getConfig().getString("books.voting.indent", "  ");
+        int maxQuestionLength = plugin.getConfig().getInt("books.voting.maxQuestionLength", 100);
+        int maxOptionLength = plugin.getConfig().getInt("books.voting.maxOptionLength", 50);
         // State formats
         String stClick = plugin.getConfig().getString("books.voting.state.click", "<gray>Click to vote for %number%</gray>");
         String stVoted = plugin.getConfig().getString("books.voting.state.voted", "<yellow>You voted for %number%</yellow>");
@@ -146,15 +146,16 @@ public class BookFactory {
         }
 
         Component page;
+        String truncatedQuestion = truncateText(poll.getQuestion(), maxQuestionLength);
         if (headerFmt != null) {
             String header = plugin.getMessageService().apply(Map.of(
-                    "question", poll.getQuestion(),
+                    "question", truncatedQuestion,
                     "closes_at", plugin.getMessageService().formatAbsoluteTime(poll.getClosesAtEpochSeconds())
             ), headerFmt);
             page = mm.deserialize(header).append(newline());
         } else {
             page = mm.deserialize(qLabel + " ")
-                    .append(withHover(mm.deserialize(poll.getQuestion()), hoverQuestion))
+                    .append(withHover(mm.deserialize(truncatedQuestion), hoverQuestion))
                     .append(newline())
                     .append(mm.deserialize(cLabel + " "))
                     .append(mm.deserialize(plugin.getMessageService().formatAbsoluteTime(poll.getClosesAtEpochSeconds())))
@@ -174,60 +175,54 @@ public class BookFactory {
             if (en.getValue() > max) { max = en.getValue(); majorityIndex = en.getKey(); }
         }
 
-        // Build first page with templated 1-3
+        // Build pages with 3 options per page maximum
         List<String> icons2 = iconsList;
-        String[] rows = new String[] { row1, row2, row3 };
-        for (int i = 0; i < Math.min(3, poll.getOptions().size()); i++) {
-            String icon = i < icons2.size() ? icons2.get(i) : String.valueOf(i + 1) + ".";
-            String state;
-            if (majorityIndex == i) state = stMajority.replace("%number%", String.valueOf(i + 1));
-            else if (playerVote != null && playerVote == i) state = stVoted.replace("%number%", String.valueOf(i + 1));
-            else state = stClick.replace("%number%", String.valueOf(i + 1));
-            String line = rows[i]
-                    .replace("%icon" + (i + 1) + "%", icon)
-                    .replace("%question" + (i + 1) + "%", poll.getOptions().get(i))
-                    .replace("%state" + (i + 1) + "%", state);
-            Component comp = withHover(mm.deserialize(line), (playerVote != null || !poll.isOpen()) ? hoverAlready : hoverOption);
-            if (playerVote == null && poll.isOpen()) {
-                comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getCode() + " " + i));
-            }
-            page = page.append(mm.deserialize(indent)).append(comp).append(newline());
-        }
+        List<Component> pages = new ArrayList<>();
+        int totalOptions = poll.getOptions().size();
+        int optionsPerPage = 3;
+        int totalPages = (int) Math.ceil((double) totalOptions / optionsPerPage);
 
-        // If more than 3, add second page with remaining
-        if (poll.getOptions().size() > 3) {
-            page = page.append(newline()).append(mm.deserialize(indent + nextPageHint));
-            Component page2 = Component.empty();
-            for (int i = 3; i < poll.getOptions().size(); i++) {
+        for (int pageNum = 0; pageNum < totalPages; pageNum++) {
+            Component currentPage = page;
+            if (pageNum > 0) {
+                currentPage = Component.empty();
+            }
+
+            int startIndex = pageNum * optionsPerPage;
+            int endIndex = Math.min(startIndex + optionsPerPage, totalOptions);
+
+            for (int i = startIndex; i < endIndex; i++) {
                 String icon = i < icons2.size() ? icons2.get(i) : String.valueOf(i + 1) + ".";
                 String state;
                 if (majorityIndex == i) state = stMajority.replace("%number%", String.valueOf(i + 1));
                 else if (playerVote != null && playerVote == i) state = stVoted.replace("%number%", String.valueOf(i + 1));
                 else state = stClick.replace("%number%", String.valueOf(i + 1));
-
-                String perRowKey = "books.voting.rows.row" + (i + 1);
-                String tmpl = plugin.getConfig().getString(perRowKey, page2Format);
-                String line = tmpl
+                String truncatedOption = truncateText(poll.getOptions().get(i), maxOptionLength);
+                String line = rowFormat
                         .replace("%icon%", icon)
-                        .replace("%question%", poll.getOptions().get(i))
+                        .replace("%question%", truncatedOption)
                         .replace("%state%", state);
                 Component comp = withHover(mm.deserialize(line), (playerVote != null || !poll.isOpen()) ? hoverAlready : hoverOption);
                 if (playerVote == null && poll.isOpen()) {
                     comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getCode() + " " + i));
                 }
-                page2 = page2.append(mm.deserialize(indent)).append(comp).append(newline());
+                currentPage = currentPage.append(mm.deserialize(indent)).append(comp).append(newline());
             }
-            meta.title(Component.text(mm.stripTags(title)));
-            meta.author(Component.text(mm.stripTags(author)));
-            meta.addPages(page, page2);
-            book.setItemMeta(meta);
-            open(player, book);
-            return;
+
+            if (pageNum < totalPages - 1) {
+                currentPage = currentPage.append(newline()).append(mm.deserialize(indent + nextPageHint));
+            }
+
+            if (!poll.isOpen()) {
+                currentPage = currentPage.append(newline()).append(mm.deserialize(indent + closedMessage));
+            }
+
+            pages.add(currentPage);
         }
 
         meta.title(Component.text(mm.stripTags(title)));
         meta.author(Component.text(mm.stripTags(author)));
-        meta.addPages(page);
+        meta.addPages(pages.toArray(new Component[0]));
         book.setItemMeta(meta);
 
         open(player, book);
@@ -248,6 +243,12 @@ public class BookFactory {
 
     private void open(Player player, ItemStack book) {
         Bukkit.getScheduler().runTask(plugin, () -> player.openBook(book));
+    }
+
+    private String truncateText(String text, int maxLength) {
+        if (text == null) return "";
+        if (text.length() <= maxLength) return text;
+        return text.substring(0, maxLength - 3) + "...";
     }
 
     private Component withHover(Component component, String hover) {

@@ -6,7 +6,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class SessionManager {
@@ -14,6 +16,7 @@ public class SessionManager {
     private final PollsPlugin plugin;
     private final Map<UUID, PollCreationSession> sessions = new HashMap<>();
     private final Map<UUID, Integer> autoReopenTasks = new HashMap<>();
+    private final Set<UUID> playersWithOpenBooks = new HashSet<>();
 
     public SessionManager(PollsPlugin plugin) {
         this.plugin = plugin;
@@ -54,6 +57,14 @@ public class SessionManager {
         if (s != null) s.awaitOption(index);
     }
 
+    public void markBookOpened(UUID playerId) {
+        playersWithOpenBooks.add(playerId);
+    }
+
+    public void markBookClosed(UUID playerId) {
+        playersWithOpenBooks.remove(playerId);
+    }
+
     private void scheduleAutoReopen(UUID playerId) {
         boolean enabled = plugin.getConfig().getBoolean("books.creation.autoReopen.enabled", true);
         if (!enabled) return;
@@ -71,6 +82,7 @@ public class SessionManager {
                 return;
             }
             if (onlyWhenIdle && s.getAwaiting() != PollCreationSession.Awaiting.NONE) return;
+            if (playersWithOpenBooks.contains(playerId)) return; // Don't reopen if player has book open
             Player p = plugin.getServer().getPlayer(playerId);
             if (p == null || !p.isOnline()) return;
             plugin.getBookFactory().openCreationBook(p, s);

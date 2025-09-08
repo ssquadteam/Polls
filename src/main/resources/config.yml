@@ -41,14 +41,13 @@ books:
     title: "<gradient:#7BD3EA:#2176FF>Community Poll</gradient>"
     author: "Polls"
     headerFormat: "<gray>Q:</gray> <dark_gray>{question}</dark_gray>\n<gray>Closes:</gray> <dark_gray>{closes_at}</dark_gray>\n"
+    closedMessage: "<red>Poll has closed</red>"
+    maxQuestionLength: 100
+    maxOptionLength: 50
     optionLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(click to vote)</gray>"
     alreadyVotedLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(you voted)</gray>"
     rows:
-      row1: "<black><black>%icon1% <dark_gray>%question1%</dark_gray> <gray>(%state1%)</gray>"
-      row2: "<black><black>%icon2% <dark_gray>%question2%</dark_gray> <gray>(%state2%)</gray>"
-      row3: "<black><black>%icon3% <dark_gray>%question3%</dark_gray> <gray>(%state3%)</gray>"
-      # Add row4, row5, row6 as needed.
-      page2Format: "%icon% <dark_gray>%question%</dark_gray> <gray>(%state%)</gray>"
+      rowFormat: "%icon% <dark_gray>%question%</dark_gray> <gray>(%state%)</gray>"
     nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
     indent: "  "
     state:
