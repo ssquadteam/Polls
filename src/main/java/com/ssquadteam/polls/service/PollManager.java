@@ -90,6 +90,50 @@ public class PollManager {
         storage.savePoll(poll);
         Integer taskId = scheduledTasks.remove(poll.getId());
         if (taskId != null) Bukkit.getScheduler().cancelTask(taskId);
+
+        announceResults(poll);
+    }
+
+    private void announceResults(Poll poll) {
+        Map<Integer, Integer> tally = storage.getVoteTally(poll.getId());
+
+        if (tally.isEmpty()) {
+            Map<String, String> ph = Map.of(
+                "question", poll.getQuestion()
+            );
+            messages.broadcast("announce.poll_closed_no_votes", ph);
+            return;
+        }
+
+        int maxVotes = 0;
+        for (Integer votes : tally.values()) {
+            if (votes > maxVotes) {
+                maxVotes = votes;
+            }
+        }
+        List<Integer> winners = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> entry : tally.entrySet()) {
+            if (entry.getValue() == maxVotes) {
+                winners.add(entry.getKey());
+            }
+        }
+
+        if (winners.size() > 1) {
+            Map<String, String> ph = Map.of(
+                "question", poll.getQuestion(),
+                "votes", String.valueOf(maxVotes)
+            );
+            messages.broadcast("announce.poll_closed_tie", ph);
+        } else {
+            int winnerIndex = winners.get(0);
+            String winningOption = poll.getOptions().get(winnerIndex);
+            Map<String, String> ph = Map.of(
+                "question", poll.getQuestion(),
+                "winning_option", winningOption,
+                "votes", String.valueOf(maxVotes)
+            );
+            messages.broadcast("announce.poll_closed", ph);
+        }
     }
 
     public void removePoll(UUID id) {

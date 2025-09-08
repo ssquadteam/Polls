@@ -51,9 +51,13 @@ books:
     nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
     indent: "  "
     state:
+      # States for open polls
       click: "<gray>Click to vote for %number%</gray>"
       voted: "<yellow>You voted for %number%</yellow>"
-      majority: "<green>%number% had majority votes</green>"
+      majority: "<green>%number% has most votes</green>"
+      click_closed: "<gray>Voting closed</gray>"
+      voted_closed: "<yellow>You voted for %number%</yellow>"
+      majority_closed: "<green>%number% had highest votes</green>"
     hover:
       option: "<gray>Pick this option.</gray>"
       alreadyVotedOption: "<yellow>You already voted</yellow>"

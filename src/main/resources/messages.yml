@@ -27,7 +27,10 @@ creation:
   published: "<green>Poll published with code <white>{code}</white>.</green>"
   book_hint: "<gray>Use the book buttons to continue.</gray>"
 announce:
-  new_poll: "<gold>New poll:</gold> <white>{question}</white> <gray>(closes {pretty})</gray> <aqua><click:run_command:'/poll view {code}'>[Open Poll]</click></aqua>"
+  new_poll: "<gold>New poll:</gold> <white>{question}</white> <gray>(closes {pretty})</gray> <aqua><click:run_command:'/poll view {code}'><hover:show_text:'<yellow>Click to open the poll and vote!</yellow>'>[Open Poll]</hover></click></aqua>"
+  poll_closed: "<red>Poll closed:</red> <white><hover:show_text:'<gray>Poll: {question}</gray>'>{question}</hover></white> <green><hover:show_text:'<yellow>This option received the most votes!</yellow>'>Winner: {winning_option}</hover></green> <gray>({votes} votes)</gray>"
+  poll_closed_tie: "<red>Poll closed:</red> <white><hover:show_text:'<gray>Poll: {question}</gray>'>{question}</hover></white> <yellow><hover:show_text:'<gray>Multiple options received the same number of votes</gray>'>Tie between multiple options</hover></yellow> <gray>({votes} votes each)</gray>"
+  poll_closed_no_votes: "<red>Poll closed:</red> <white><hover:show_text:'<gray>Poll: {question}</gray>'>{question}</hover></white> <gray><hover:show_text:'<yellow>Nobody voted on this poll</yellow>'>No votes received</hover></gray>"
 list:
   header: "<gold>Polls:</gold>"
   entry_open: "<green>OPEN</green> <white>{code}</white> - {question} <gray>(closes {pretty})</gray>"

@@ -1,12 +1,15 @@
 package com.ssquadteam.polls.service;
 
 import com.ssquadteam.polls.PollsPlugin;
+import com.ssquadteam.polls.model.PollDraft;
 import com.ssquadteam.polls.service.session.PollCreationSession;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +20,7 @@ public class SessionManager {
     private final Map<UUID, PollCreationSession> sessions = new HashMap<>();
     private final Map<UUID, Integer> autoReopenTasks = new HashMap<>();
     private final Set<UUID> playersWithOpenBooks = new HashSet<>();
+    private final Map<String, PollDraft> drafts = new HashMap<>();
 
     public SessionManager(PollsPlugin plugin) {
         this.plugin = plugin;
@@ -63,6 +67,47 @@ public class SessionManager {
 
     public void markBookClosed(UUID playerId) {
         playersWithOpenBooks.remove(playerId);
+    }
+
+    public void saveDraft(PollCreationSession session) {
+        if (session.getCode() == null || session.getCode().isBlank()) return;
+
+        PollDraft draft = new PollDraft(
+            session.getCode(),
+            session.getCreator(),
+            session.getQuestion(),
+            session.getDurationSeconds(),
+            session.getDefinedOptions(),
+            Instant.now().getEpochSecond()
+        );
+        drafts.put(session.getCode().toLowerCase(), draft);
+    }
+
+    public PollDraft getDraft(String code) {
+        return drafts.get(code.toLowerCase());
+    }
+
+    public void removeDraft(String code) {
+        drafts.remove(code.toLowerCase());
+    }
+
+    public PollCreationSession loadDraftIntoSession(UUID playerId, String code) {
+        PollDraft draft = getDraft(code);
+        if (draft == null) return null;
+
+        PollCreationSession session = new PollCreationSession(playerId);
+        session.setCode(draft.getCode());
+        session.setQuestion(draft.getQuestion());
+        session.setDurationSeconds(draft.getDurationSeconds());
+
+        List<String> options = draft.getOptions();
+        for (int i = 0; i < Math.min(options.size(), 6); i++) {
+            session.setOption(i, options.get(i));
+        }
+
+        sessions.put(playerId, session);
+        scheduleAutoReopen(playerId);
+        return session;
     }
 
     private void scheduleAutoReopen(UUID playerId) {

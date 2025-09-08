@@ -133,10 +133,12 @@ public class BookFactory {
         String indent = plugin.getConfig().getString("books.voting.indent", "  ");
         int maxQuestionLength = plugin.getConfig().getInt("books.voting.maxQuestionLength", 100);
         int maxOptionLength = plugin.getConfig().getInt("books.voting.maxOptionLength", 50);
-        // State formats
         String stClick = plugin.getConfig().getString("books.voting.state.click", "<gray>Click to vote for %number%</gray>");
         String stVoted = plugin.getConfig().getString("books.voting.state.voted", "<yellow>You voted for %number%</yellow>");
-        String stMajority = plugin.getConfig().getString("books.voting.state.majority", "<green>%number% had majority votes</green>");
+        String stMajority = plugin.getConfig().getString("books.voting.state.majority", "<green>%number% has most votes</green>");
+        String stClickClosed = plugin.getConfig().getString("books.voting.state.click_closed", "<gray>Voting closed</gray>");
+        String stVotedClosed = plugin.getConfig().getString("books.voting.state.voted_closed", "<yellow>You voted for %number%</yellow>");
+        String stMajorityClosed = plugin.getConfig().getString("books.voting.state.majority_closed", "<green>%number% had highest votes</green>");
         String hoverOption = plugin.getConfig().getString("books.voting.hover.option", "Pick this option.");
         String hoverAlready = plugin.getConfig().getString("books.voting.hover.alreadyVotedOption", "You already voted.");
         String hoverQuestion = plugin.getConfig().getString("books.voting.hover.question", "Poll question");
@@ -194,9 +196,15 @@ public class BookFactory {
             for (int i = startIndex; i < endIndex; i++) {
                 String icon = i < icons2.size() ? icons2.get(i) : String.valueOf(i + 1) + ".";
                 String state;
-                if (majorityIndex == i) state = stMajority.replace("%number%", String.valueOf(i + 1));
-                else if (playerVote != null && playerVote == i) state = stVoted.replace("%number%", String.valueOf(i + 1));
-                else state = stClick.replace("%number%", String.valueOf(i + 1));
+                if (poll.isOpen()) {
+                    if (majorityIndex == i) state = stMajority.replace("%number%", String.valueOf(i + 1));
+                    else if (playerVote != null && playerVote == i) state = stVoted.replace("%number%", String.valueOf(i + 1));
+                    else state = stClick.replace("%number%", String.valueOf(i + 1));
+                } else {
+                    if (majorityIndex == i) state = stMajorityClosed.replace("%number%", String.valueOf(i + 1));
+                    else if (playerVote != null && playerVote == i) state = stVotedClosed.replace("%number%", String.valueOf(i + 1));
+                    else state = stClickClosed.replace("%number%", String.valueOf(i + 1));
+                }
                 String truncatedOption = truncateText(poll.getOptions().get(i), maxOptionLength);
                 String line = rowFormat
                         .replace("%icon%", icon)

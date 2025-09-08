@@ -54,8 +54,8 @@ public class PollCommand implements CommandExecutor, TabCompleter {
             case "view" -> handleView(sender, Arrays.copyOfRange(args, 1, args.length));
             case "vote" -> handleVote(sender, Arrays.copyOfRange(args, 1, args.length));
             case "publish" -> handlePublish(sender);
-            case "cancel" -> handleCancel(sender);
-            case "cancelcreation" -> handleCancel(sender);
+            case "cancel" -> handleCancel(sender, Arrays.copyOfRange(args, 1, args.length));
+            case "cancelcreation" -> handleCancel(sender, new String[0]);
             case "edit" -> handleEdit(sender, Arrays.copyOfRange(args, 1, args.length));
             default -> messages.send(sender, "errors.invalid_args", Map.of());
         }
@@ -223,10 +223,28 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         pollManager.publishFromSession(player, session);
     }
 
-    private void handleCancel(CommandSender sender) {
+    private void handleCancel(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) { messages.send(sender, "errors.only_players", Map.of()); return; }
+
+        if (args.length > 0) {
+            String code = args[0];
+            if (sessions.getDraft(code) != null) {
+                sessions.removeDraft(code);
+                messages.send(player, "creation.cancelled", Map.of());
+                plugin.getMessageService().playSound(player, "ui.cancel");
+                return;
+            } else {
+                messages.send(player, "errors.invalid_poll", Map.of());
+                return;
+            }
+        }
+
         PollCreationSession session = sessions.getSession(player.getUniqueId());
         if (session != null) {
+            if (session.getCode() != null && !session.getCode().isBlank() &&
+                (session.getQuestion() != null || !session.getDefinedOptions().isEmpty())) {
+                sessions.saveDraft(session);
+            }
             sessions.endSession(player.getUniqueId());
             messages.send(player, "creation.cancelled", Map.of());
             plugin.getMessageService().playSound(player, "ui.cancel");
@@ -240,9 +258,19 @@ public class PollCommand implements CommandExecutor, TabCompleter {
 
         if (args.length >= 1 && !args[0].equalsIgnoreCase("question") && !args[0].equalsIgnoreCase("duration") && !args[0].equalsIgnoreCase("option") && !args[0].equalsIgnoreCase("code")) {
             String idOrCode = args[0];
+
+            PollCreationSession session = sessions.loadDraftIntoSession(player.getUniqueId(), idOrCode);
+            if (session != null) {
+                messages.send(player, "creation.started", Map.of());
+                messages.send(player, "creation.book_hint", Map.of());
+                plugin.getBookFactory().openCreationBook(player, session);
+                plugin.getMessageService().playSound(player, "ui.open_creation");
+                return;
+            }
+
             Poll target = storage.findByIdOrCode(idOrCode);
             if (target == null) { messages.send(player, "errors.invalid_poll", Map.of()); return; }
-            PollCreationSession session = sessions.startSession(player.getUniqueId());
+            session = sessions.startSession(player.getUniqueId());
             session.startEditing(target.getId());
             session.setCode(target.getCode());
             session.setQuestion(target.getQuestion());
