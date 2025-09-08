@@ -42,6 +42,9 @@ books:
     author: "Polls"
     headerFormat: "<gray>Q:</gray> <dark_gray>{question}</dark_gray>\n<gray>Closes:</gray> <dark_gray>{closes_at}</dark_gray>\n"
     closedMessage: "<red>Poll has closed</red>"
+    labels:
+      question: "<gray>Q:</gray>"
+      closes: "<gray>Closes:</gray>"
     maxQuestionLength: 100
     maxOptionLength: 50
     optionLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(click to vote)</gray>"

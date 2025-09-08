@@ -327,7 +327,6 @@ public class PollCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2 && (args[0].equalsIgnoreCase("view") || args[0].equalsIgnoreCase("close") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("edit"))) {
             List<String> items = new ArrayList<>();
             for (Poll p : storage.getAllPolls()) {
-                items.add(p.getId().toString());
                 if (p.getCode() != null && !p.getCode().isBlank()) items.add(p.getCode());
             }
             return items;
