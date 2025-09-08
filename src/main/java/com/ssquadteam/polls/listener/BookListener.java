@@ -23,14 +23,20 @@ public class BookListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (event.getPlayer() instanceof Player player) {
-            plugin.getFolia().getScheduler().runTimer(() -> {
-                ItemStack mainHand = player.getInventory().getItemInMainHand();
-                if (mainHand.getType() != Material.WRITTEN_BOOK) {
-                    plugin.getSessionManager().markBookClosed(player.getUniqueId());
+        if (!(event.getPlayer() instanceof Player player)) return;
+
+        // Admin force-closes the creation book: cancel the creation session immediately
+        plugin.getFolia().getScheduler().runAtEntity(player, task -> {
+            ItemStack mainHand = player.getInventory().getItemInMainHand();
+            if (mainHand.getType() != Material.WRITTEN_BOOK) {
+                plugin.getSessionManager().markBookClosed(player.getUniqueId());
+                com.ssquadteam.polls.service.session.PollCreationSession session = plugin.getSessionManager().getSession(player.getUniqueId());
+                if (session != null) {
+                    plugin.getSessionManager().endSession(player.getUniqueId());
+                    plugin.getMessageService().sendWithSound(player, "creation.cancelled", java.util.Map.of(), "ui.cancel");
                 }
-            }, 5L, Long.MAX_VALUE);
-        }
+            }
+        });
     }
 
     @EventHandler
@@ -49,12 +55,17 @@ public class BookListener implements Listener {
     @EventHandler
     public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
-        plugin.getFolia().getScheduler().runTimer(() -> {
+        plugin.getFolia().getScheduler().runAtEntity(player, task -> {
             ItemStack mainHand = player.getInventory().getItemInMainHand();
             if (mainHand.getType() != Material.WRITTEN_BOOK) {
                 plugin.getSessionManager().markBookClosed(player.getUniqueId());
+                com.ssquadteam.polls.service.session.PollCreationSession session = plugin.getSessionManager().getSession(player.getUniqueId());
+                if (session != null) {
+                    plugin.getSessionManager().endSession(player.getUniqueId());
+                    plugin.getMessageService().sendWithSound(player, "creation.cancelled", java.util.Map.of(), "ui.cancel");
+                }
             }
-        }, 2L, Long.MAX_VALUE);
+        });
     }
 
     @EventHandler
@@ -65,12 +76,17 @@ public class BookListener implements Listener {
         if (item.getType() == Material.WRITTEN_BOOK) {
             plugin.getSessionManager().markBookOpened(player.getUniqueId());
         } else {
-            plugin.getFolia().getScheduler().runTimer(() -> {
+            plugin.getFolia().getScheduler().runAtEntity(player, task -> {
                 ItemStack currentItem = player.getInventory().getItemInMainHand();
                 if (currentItem.getType() != Material.WRITTEN_BOOK) {
                     plugin.getSessionManager().markBookClosed(player.getUniqueId());
+                    com.ssquadteam.polls.service.session.PollCreationSession session = plugin.getSessionManager().getSession(player.getUniqueId());
+                    if (session != null) {
+                        plugin.getSessionManager().endSession(player.getUniqueId());
+                        plugin.getMessageService().sendWithSound(player, "creation.cancelled", java.util.Map.of(), "ui.cancel");
+                    }
                 }
-            }, 2L, Long.MAX_VALUE);
+            });
         }
     }
 }

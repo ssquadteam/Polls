@@ -34,10 +34,6 @@ books:
       id: "<gray>Code:</gray>"
       question: "<gray>Question:</gray>"
       duration: "<gray>Duration:</gray>"
-    autoReopen:
-      enabled: true
-      intervalTicks: 20
-      onlyWhenIdle: true
     hover:
       code: "<gray>Click to set code</gray>"
       question: "<gray>Click to set question</gray>"

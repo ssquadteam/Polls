@@ -3,7 +3,6 @@ package com.ssquadteam.polls.service;
 import com.ssquadteam.polls.PollsPlugin;
 import com.ssquadteam.polls.model.PollDraft;
 import com.ssquadteam.polls.service.session.PollCreationSession;
-import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.entity.Player;
 
 import java.time.Instant;
@@ -18,7 +17,6 @@ public class SessionManager {
 
     private final PollsPlugin plugin;
     private final Map<UUID, PollCreationSession> sessions = new HashMap<>();
-    private final Map<UUID, WrappedTask> autoReopenTasks = new HashMap<>();
     private final Set<UUID> playersWithOpenBooks = new HashSet<>();
     private final Map<String, PollDraft> drafts = new HashMap<>();
 
@@ -29,17 +27,12 @@ public class SessionManager {
     public PollCreationSession startSession(UUID playerId) {
         PollCreationSession session = new PollCreationSession(playerId);
         sessions.put(playerId, session);
-        scheduleAutoReopen(playerId);
         return session;
     }
 
     public PollCreationSession getSession(UUID playerId) { return sessions.get(playerId); }
 
-    public void endSession(UUID playerId) {
-        sessions.remove(playerId);
-        WrappedTask task = autoReopenTasks.remove(playerId);
-        if (task != null) task.cancel();
-    }
+    public void endSession(UUID playerId) { sessions.remove(playerId); }
 
     public void awaitQuestion(UUID playerId) {
         PollCreationSession s = sessions.get(playerId);
@@ -106,32 +99,8 @@ public class SessionManager {
         }
 
         sessions.put(playerId, session);
-        scheduleAutoReopen(playerId);
         return session;
     }
 
-    private void scheduleAutoReopen(UUID playerId) {
-        boolean enabled = plugin.getConfig().getBoolean("books.creation.autoReopen.enabled", true);
-        if (!enabled) return;
-        int interval = plugin.getConfig().getInt("books.creation.autoReopen.intervalTicks", 60);
-        boolean onlyWhenIdle = plugin.getConfig().getBoolean("books.creation.autoReopen.onlyWhenIdle", true);
-
-        WrappedTask existing = autoReopenTasks.remove(playerId);
-        if (existing != null) existing.cancel();
-
-        WrappedTask task = plugin.getFolia().getScheduler().runTimer(() -> {
-            PollCreationSession s = sessions.get(playerId);
-            if (s == null) {
-                WrappedTask tid = autoReopenTasks.remove(playerId);
-                if (tid != null) tid.cancel();
-                return;
-            }
-            if (onlyWhenIdle && s.getAwaiting() != PollCreationSession.Awaiting.NONE) return;
-            if (playersWithOpenBooks.contains(playerId)) return; // Don't reopen if player has book open
-            Player p = plugin.getServer().getPlayer(playerId);
-            if (p == null || !p.isOnline()) return;
-            plugin.getBookFactory().openCreationBook(p, s);
-        }, interval, interval);
-        autoReopenTasks.put(playerId, task);
-    }
+    // Auto-reopen feature removed per requirements
 }
