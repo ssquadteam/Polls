@@ -105,11 +105,20 @@ public class MessageService {
         if (!plugin.getConfig().getBoolean("sounds.enabled", true)) return;
         String soundKey = plugin.getConfig().getString("sounds." + keyPath);
         if (soundKey == null || soundKey.isBlank()) return;
-        try {
-            player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(soundKey.toUpperCase(Locale.ROOT)), 1f, 1f);
-        } catch (IllegalArgumentException ex) {
-            // treat as namespaced key string if not a Sound enum
-            player.playSound(player.getLocation(), org.bukkit.NamespacedKey.minecraft(soundKey).toString(), 1f, 1f);
+        if (plugin instanceof com.ssquadteam.polls.PollsPlugin polls) {
+            polls.getFolia().getScheduler().runAtEntity(player, task -> {
+                try {
+                    player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(soundKey.toUpperCase(Locale.ROOT)), 1f, 1f);
+                } catch (IllegalArgumentException ex) {
+                    player.playSound(player.getLocation(), org.bukkit.NamespacedKey.minecraft(soundKey).toString(), 1f, 1f);
+                }
+            });
+        } else {
+            try {
+                player.playSound(player.getLocation(), org.bukkit.Sound.valueOf(soundKey.toUpperCase(Locale.ROOT)), 1f, 1f);
+            } catch (IllegalArgumentException ex) {
+                player.playSound(player.getLocation(), org.bukkit.NamespacedKey.minecraft(soundKey).toString(), 1f, 1f);
+            }
         }
     }
 

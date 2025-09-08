@@ -24,12 +24,12 @@ public class BookListener implements Listener {
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (event.getPlayer() instanceof Player player) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getFolia().getScheduler().runTimer(() -> {
                 ItemStack mainHand = player.getInventory().getItemInMainHand();
                 if (mainHand.getType() != Material.WRITTEN_BOOK) {
                     plugin.getSessionManager().markBookClosed(player.getUniqueId());
                 }
-            }, 5L);
+            }, 5L, Long.MAX_VALUE);
         }
     }
 
@@ -49,12 +49,12 @@ public class BookListener implements Listener {
     @EventHandler
     public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        plugin.getFolia().getScheduler().runTimer(() -> {
             ItemStack mainHand = player.getInventory().getItemInMainHand();
             if (mainHand.getType() != Material.WRITTEN_BOOK) {
                 plugin.getSessionManager().markBookClosed(player.getUniqueId());
             }
-        }, 2L);
+        }, 2L, Long.MAX_VALUE);
     }
 
     @EventHandler
@@ -65,12 +65,12 @@ public class BookListener implements Listener {
         if (item.getType() == Material.WRITTEN_BOOK) {
             plugin.getSessionManager().markBookOpened(player.getUniqueId());
         } else {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getFolia().getScheduler().runTimer(() -> {
                 ItemStack currentItem = player.getInventory().getItemInMainHand();
                 if (currentItem.getType() != Material.WRITTEN_BOOK) {
                     plugin.getSessionManager().markBookClosed(player.getUniqueId());
                 }
-            }, 2L);
+            }, 2L, Long.MAX_VALUE);
         }
     }
 }

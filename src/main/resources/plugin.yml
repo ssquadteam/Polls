@@ -3,6 +3,7 @@ main: com.ssquadteam.polls.PollsPlugin
 version: ${version}
 author: SSquadTeam
 api-version: '1.21'
+folia-supported: true
 libraries:
   - org.postgresql:postgresql:42.7.3
 

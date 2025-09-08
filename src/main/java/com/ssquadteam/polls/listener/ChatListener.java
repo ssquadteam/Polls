@@ -66,7 +66,7 @@ public class ChatListener implements Listener {
             }
         }
 
-        // Re-open updated creation book synchronously
-        plugin.getServer().getScheduler().runTask(plugin, () -> plugin.getBookFactory().openCreationBook(event.getPlayer(), session));
+        // Open the book on the player's region thread (Folia-safe or main thread on Spigot/Paper)
+        plugin.getFolia().getScheduler().runAtEntity(event.getPlayer(), task -> plugin.getBookFactory().openCreationBook(event.getPlayer(), session));
     }
 }

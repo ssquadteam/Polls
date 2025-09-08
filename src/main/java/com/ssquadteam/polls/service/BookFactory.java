@@ -261,7 +261,7 @@ public class BookFactory {
     }
 
     private void open(Player player, ItemStack book) {
-        Bukkit.getScheduler().runTask(plugin, () -> player.openBook(book));
+        plugin.getFolia().getScheduler().runAtEntity(player, task -> player.openBook(book));
     }
 
     private String truncateText(String text, int maxLength) {

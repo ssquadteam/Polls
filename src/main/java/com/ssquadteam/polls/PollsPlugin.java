@@ -12,6 +12,7 @@ import com.ssquadteam.polls.service.SessionManager;
 import com.ssquadteam.polls.storage.JsonPollStorage;
 import com.ssquadteam.polls.storage.PollStorage;
 import com.ssquadteam.polls.storage.PostgresPollStorage;
+import com.tcoded.folialib.FoliaLib;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public final class PollsPlugin extends JavaPlugin {
     private SessionManager sessionManager;
     private MessageService messageService;
     private BookFactory bookFactory;
+    private FoliaLib folia;
 
     public static PollsPlugin getInstance() {
         return instance;
@@ -42,6 +44,7 @@ public final class PollsPlugin extends JavaPlugin {
         saveDefaultConfig();
         saveResource("messages.yml", false);
 
+        this.folia = new FoliaLib(this);
         this.messageService = new MessageService(this);
         this.bookFactory = new BookFactory(this);
 
@@ -79,10 +82,12 @@ public final class PollsPlugin extends JavaPlugin {
     public void onDisable() {
         if (pollManager != null) pollManager.shutdown();
         if (storage != null) storage.close();
+        if (folia != null) folia.getScheduler().cancelAllTasks();
     }
 
     public PollManager getPollManager() { return pollManager; }
     public SessionManager getSessionManager() { return sessionManager; }
     public MessageService getMessageService() { return messageService; }
     public BookFactory getBookFactory() { return bookFactory; }
+    public FoliaLib getFolia() { return folia; }
 }

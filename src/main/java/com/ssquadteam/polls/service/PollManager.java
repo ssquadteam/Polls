@@ -6,7 +6,7 @@ import com.ssquadteam.polls.model.PollStatus;
 import com.ssquadteam.polls.service.session.PollCreationSession;
 import com.ssquadteam.polls.storage.PollStorage;
 import com.ssquadteam.polls.util.DurationUtil;
-import org.bukkit.Bukkit;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.entity.Player;
 
 import java.time.Instant;
@@ -18,7 +18,7 @@ public class PollManager {
     private final PollStorage storage;
     private final MessageService messages;
 
-    private final Map<UUID, Integer> scheduledTasks = new HashMap<>();
+    private final Map<UUID, WrappedTask> scheduledTasks = new HashMap<>();
 
     public PollManager(PollsPlugin plugin, PollStorage storage) {
         this.plugin = plugin;
@@ -85,15 +85,17 @@ public class PollManager {
 
     public void trackOpenPoll(Poll poll) {
         long delayTicks = Math.max(1, (poll.getClosesAtEpochSeconds() - Instant.now().getEpochSecond()) * 20);
-        int taskId = Bukkit.getScheduler().runTaskLater(plugin, () -> closePoll(poll, false), delayTicks).getTaskId();
-        scheduledTasks.put(poll.getId(), taskId);
+        WrappedTask existing = scheduledTasks.remove(poll.getId());
+        if (existing != null) existing.cancel();
+        WrappedTask task = plugin.getFolia().getScheduler().runTimer(() -> closePoll(poll, false), delayTicks, Long.MAX_VALUE);
+        scheduledTasks.put(poll.getId(), task);
     }
 
     public void closePoll(Poll poll, boolean manual) {
         poll.setStatus(PollStatus.CLOSED);
         storage.savePoll(poll);
-        Integer taskId = scheduledTasks.remove(poll.getId());
-        if (taskId != null) Bukkit.getScheduler().cancelTask(taskId);
+        WrappedTask task = scheduledTasks.remove(poll.getId());
+        if (task != null) task.cancel();
 
         announceResults(poll);
     }
@@ -141,8 +143,8 @@ public class PollManager {
     }
 
     public void removePoll(UUID id) {
-        Integer taskId = scheduledTasks.remove(id);
-        if (taskId != null) Bukkit.getScheduler().cancelTask(taskId);
+        WrappedTask task = scheduledTasks.remove(id);
+        if (task != null) task.cancel();
         storage.removePoll(id);
     }
 
@@ -158,7 +160,7 @@ public class PollManager {
     }
 
     public void shutdown() {
-        for (Integer taskId : scheduledTasks.values()) Bukkit.getScheduler().cancelTask(taskId);
+        for (WrappedTask task : scheduledTasks.values()) task.cancel();
         scheduledTasks.clear();
     }
 }
