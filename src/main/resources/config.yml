@@ -26,6 +26,10 @@ books:
       id: "<gray>ID:</gray>"
       question: "<gray>Question:</gray>"
       duration: "<gray>Duration:</gray>"
+    autoReopen:
+      enabled: true
+      intervalTicks: 20
+      onlyWhenIdle: true
     hover:
       code: "<gray>Click to set ID</gray>"
       question: "<gray>Click to set question</gray>"
@@ -36,9 +40,20 @@ books:
   voting:
     title: "<gradient:#7BD3EA:#2176FF>Community Poll</gradient>"
     author: "Polls"
-    headerFormat: "<gray>Q:</gray> <white>{question}</white>\n<gray>Closes:</gray> <white>{closes_at}</white>\n"
-    optionLineFormat: "{icon} <white>{option}</white> <gray>(click to vote)</gray>"
-    alreadyVotedLineFormat: "{icon} <white>{option}</white> <gray>(you voted)</gray>"
+    headerFormat: "<gray>Q:</gray> <dark_gray>{question}</dark_gray>\n<gray>Closes:</gray> <dark_gray>{closes_at}</dark_gray>\n"
+    optionLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(click to vote)</gray>"
+    alreadyVotedLineFormat: "{icon} <dark_gray>{option}</dark_gray> <gray>(you voted)</gray>"
+    rows:
+      row1: "<black><black>%icon1% <dark_gray>%question1%</dark_gray> <gray>(%state1%)</gray>"
+      row2: "<black><black>%icon2% <dark_gray>%question2%</dark_gray> <gray>(%state2%)</gray>"
+      row3: "<black><black>%icon3% <dark_gray>%question3%</dark_gray> <gray>(%state3%)</gray>"
+      page2Format: "%icon% <dark_gray>%question%</dark_gray> <gray>(%state%)</gray>"
+    nextPageNote: "<dark_gray>Turn page to continue →</dark_gray>"
+    indent: "  "
+    state:
+      click: "<gray>Click to vote for %number%</gray>"
+      voted: "<yellow>You voted for %number%</yellow>"
+      majority: "<green>%number% had majority votes</green>"
     hover:
       option: "<gray>Pick this option.</gray>"
       alreadyVotedOption: "<yellow>You already voted</yellow>"
@@ -47,12 +62,12 @@ books:
 # Customizable icons used before option text
 icons:
   default:
-    - "<white>1.</white>"
-    - "<white>2.</white>"
-    - "<white>3.</white>"
-    - "<white>4.</white>"
-    - "<white>5.</white>"
-    - "<white>6.</white>"
+    - "<dark_gray>1.</dark_gray>"
+    - "<dark_gray>2.</dark_gray>"
+    - "<dark_gray>3.</dark_gray>"
+    - "<dark_gray>4.</dark_gray>"
+    - "<dark_gray>5.</dark_gray>"
+    - "<dark_gray>6.</dark_gray>"
 
 # Sound customization for UX feedback
 sounds:

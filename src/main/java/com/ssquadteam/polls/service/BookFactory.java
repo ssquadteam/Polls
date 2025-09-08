@@ -126,12 +126,23 @@ public class BookFactory {
         String cLabel = plugin.getConfig().getString("books.voting.labels.closes", "<gray>Closes:</gray>");
         String optionLineFmt = plugin.getConfig().getString("books.voting.optionLineFormat", "{icon} {option} (click to vote)");
         String alreadyVotedLineFmt = plugin.getConfig().getString("books.voting.alreadyVotedLineFormat", "{icon} {option} (you voted)");
+        // New configurable templated lines for first page rows
+        String row1 = plugin.getConfig().getString("books.voting.rows.row1", "<black>%icon1% %question1% (%state1%)");
+        String row2 = plugin.getConfig().getString("books.voting.rows.row2", "<black>%icon2% %question2% (%state2%)");
+        String row3 = plugin.getConfig().getString("books.voting.rows.row3", "<black>%icon3% %question3% (%state3%)");
+        String page2Format = plugin.getConfig().getString("books.voting.rows.page2Format", "%icon% %question% (%state%)");
+        String nextPageHint = plugin.getConfig().getString("books.voting.nextPageNote", "<dark_gray>Turn page to continue →</dark_gray>");
+        String indent = plugin.getConfig().getString("books.voting.indent", "  ");
+        // State formats
+        String stClick = plugin.getConfig().getString("books.voting.state.click", "<gray>Click to vote for %number%</gray>");
+        String stVoted = plugin.getConfig().getString("books.voting.state.voted", "<yellow>You voted for %number%</yellow>");
+        String stMajority = plugin.getConfig().getString("books.voting.state.majority", "<green>%number% had majority votes</green>");
         String hoverOption = plugin.getConfig().getString("books.voting.hover.option", "Pick this option.");
         String hoverAlready = plugin.getConfig().getString("books.voting.hover.alreadyVotedOption", "You already voted.");
         String hoverQuestion = plugin.getConfig().getString("books.voting.hover.question", "Poll question");
-        List<String> icons = plugin.getConfig().getStringList("icons.default");
-        if (icons == null || icons.isEmpty()) {
-            icons = List.of("1.", "2.", "3.", "4.", "5.", "6.");
+        List<String> iconsList = plugin.getConfig().getStringList("icons.default");
+        if (iconsList == null || iconsList.isEmpty()) {
+            iconsList = List.of("1.", "2.", "3.", "4.", "5.", "6.");
         }
 
         Component page;
@@ -156,19 +167,62 @@ public class BookFactory {
         } catch (Exception e) {
             alreadyVoted = false;
         }
+        Integer playerVote = plugin.getPollManager().getStorage().getPlayerVote(poll.getId(), player.getUniqueId());
+        Map<Integer, Integer> tally = plugin.getPollManager().getStorage().getVoteTally(poll.getId());
+        int majorityIndex = -1; int max = -1;
+        for (Map.Entry<Integer, Integer> en : tally.entrySet()) {
+            if (en.getValue() > max) { max = en.getValue(); majorityIndex = en.getKey(); }
+        }
 
-        for (int i = 0; i < poll.getOptions().size(); i++) {
-            String icon = i < icons.size() ? icons.get(i) : String.valueOf(i + 1) + ".";
-            String fmt = alreadyVoted ? alreadyVotedLineFmt : optionLineFmt;
-            String line = plugin.getMessageService().apply(Map.of(
-                    "icon", icon,
-                    "option", poll.getOptions().get(i)
-            ), fmt);
-            Component lineComp = withHover(mm.deserialize(line), alreadyVoted ? hoverAlready : hoverOption);
-            if (!alreadyVoted && poll.isOpen()) {
-                lineComp = lineComp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getId() + " " + i));
+        // Build first page with templated 1-3
+        List<String> icons2 = iconsList;
+        String[] rows = new String[] { row1, row2, row3 };
+        for (int i = 0; i < Math.min(3, poll.getOptions().size()); i++) {
+            String icon = i < icons2.size() ? icons2.get(i) : String.valueOf(i + 1) + ".";
+            String state;
+            if (majorityIndex == i) state = stMajority.replace("%number%", String.valueOf(i + 1));
+            else if (playerVote != null && playerVote == i) state = stVoted.replace("%number%", String.valueOf(i + 1));
+            else state = stClick.replace("%number%", String.valueOf(i + 1));
+            String line = rows[i]
+                    .replace("%icon" + (i + 1) + "%", icon)
+                    .replace("%question" + (i + 1) + "%", poll.getOptions().get(i))
+                    .replace("%state" + (i + 1) + "%", state);
+            Component comp = withHover(mm.deserialize(line), hoverOption);
+            if (playerVote == null && poll.isOpen()) {
+                comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getId() + " " + i));
             }
-            page = page.append(lineComp).append(newline());
+            page = page.append(mm.deserialize(indent)).append(comp).append(newline());
+        }
+
+        // If more than 3, add second page with remaining
+        if (poll.getOptions().size() > 3) {
+            page = page.append(newline()).append(mm.deserialize(indent + nextPageHint));
+            Component page2 = Component.empty();
+            for (int i = 3; i < poll.getOptions().size(); i++) {
+                String icon = i < icons2.size() ? icons2.get(i) : String.valueOf(i + 1) + ".";
+                String state;
+                if (majorityIndex == i) state = stMajority.replace("%number%", String.valueOf(i + 1));
+                else if (playerVote != null && playerVote == i) state = stVoted.replace("%number%", String.valueOf(i + 1));
+                else state = stClick.replace("%number%", String.valueOf(i + 1));
+
+                String perRowKey = "books.voting.rows.row" + (i + 1);
+                String tmpl = plugin.getConfig().getString(perRowKey, page2Format);
+                String line = tmpl
+                        .replace("%icon%", icon)
+                        .replace("%question%", poll.getOptions().get(i))
+                        .replace("%state%", state);
+                Component comp = withHover(mm.deserialize(line), (playerVote != null || !poll.isOpen()) ? hoverAlready : hoverOption);
+                if (playerVote == null && poll.isOpen()) {
+                    comp = comp.clickEvent(ClickEvent.runCommand("/poll vote " + poll.getId() + " " + i));
+                }
+                page2 = page2.append(mm.deserialize(indent)).append(comp).append(newline());
+            }
+            meta.title(Component.text(mm.stripTags(title)));
+            meta.author(Component.text(mm.stripTags(author)));
+            meta.addPages(page, page2);
+            book.setItemMeta(meta);
+            open(player, book);
+            return;
         }
 
         meta.title(Component.text(mm.stripTags(title)));

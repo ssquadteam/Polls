@@ -147,6 +147,12 @@ public class JsonPollStorage implements PollStorage {
     }
 
     @Override
+    public Integer getPlayerVote(UUID pollId, UUID player) {
+        Map<UUID, Integer> inner = votes.get(pollId);
+        return inner == null ? null : inner.get(player);
+    }
+
+    @Override
     public Poll findByIdOrCode(String idOrCode) {
         try {
             UUID id = UUID.fromString(idOrCode);

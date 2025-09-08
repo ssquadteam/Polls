@@ -18,5 +18,6 @@ public interface PollStorage {
 
     void saveVote(UUID pollId, UUID player, int optionIndex);
     boolean hasVoted(UUID pollId, UUID player);
+    Integer getPlayerVote(UUID pollId, UUID player);
     Map<Integer, Integer> getVoteTally(UUID pollId);
 }

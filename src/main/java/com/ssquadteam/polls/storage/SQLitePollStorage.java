@@ -181,6 +181,21 @@ public class SQLitePollStorage implements PollStorage {
     }
 
     @Override
+    public Integer getPlayerVote(UUID pollId, UUID player) {
+        String sql = "SELECT option_index FROM votes WHERE poll_id = ? AND player_uuid = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, pollId.toString());
+            ps.setString(2, player.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to get player vote: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
     public Map<Integer, Integer> getVoteTally(UUID pollId) {
         Map<Integer, Integer> map = new HashMap<>();
         String sql = "SELECT option_index, COUNT(*) FROM votes WHERE poll_id = ? GROUP BY option_index";
